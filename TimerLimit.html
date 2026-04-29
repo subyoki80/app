@@ -111,12 +111,31 @@ input[type="time"]{
   padding:12px 14px;
   border-radius:10px;
   border:1px solid var(--time-border);
-  background:var(--time-bg);
+  background-color:var(--time-bg);
   color:var(--time-text);
   font-size:24px;
   font-weight:600;
   min-width:160px;
   text-align:center;
+
+  appearance:none;
+  -webkit-appearance:none;
+}
+
+/* ★ shadow DOM 内部も強制的にグレーにする */
+input[type="time"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-text,
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field,
+input[type="time"]::-webkit-datetime-edit-second-field,
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+  background-color:var(--time-bg);
+  color:var(--time-text);
+}
+
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity:0;
 }
 
 /* ボタン共通サイズ */
@@ -204,7 +223,7 @@ button.presetBtn{
 
 <script>
 (() => {
-  /* --- NowTime（マスター） --- */
+  /* --- NowTime（秒の境界に完全同期） --- */
   const nowDate = document.getElementById('nowDate');
   const nowTime = document.getElementById('nowTime');
   const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -217,11 +236,20 @@ button.presetBtn{
     nowTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     nowDate.textContent = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${week[d.getDay()]}`;
 
-    updateTimer(); /* ★ Timer を NowTime に同期 */
+    updateTimer(); /* Timer を NowTime に同期 */
   }
 
-  setInterval(updateNow, 500);
-  updateNow();
+  function startNowTimeSync(){
+    const now = new Date();
+    const msToNextSecond = 1000 - now.getMilliseconds();
+
+    setTimeout(() => {
+      updateNow();
+      setInterval(updateNow, 1000);
+    }, msToNextSecond);
+  }
+
+  startNowTimeSync();
 
   /* --- Timer --- */
   const timeInput = document.getElementById('timeInput');
