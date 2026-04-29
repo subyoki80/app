@@ -23,7 +23,15 @@ body{
   text-align:center;
 }
 
-/* ★ iPhone で揺れない等幅数字 */
+/* ★ 日付（小さめ） */
+.now-date{
+  font-size:18px;
+  color:#9aa4b2;
+  margin-bottom:4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ★ 現在時刻（揺れない） */
 .now-time{
   font-size:48px;
   font-weight:700;
@@ -31,14 +39,14 @@ body{
   font-variant-numeric: tabular-nums;
 }
 
-.timer{
+/* ★ 残り時間だけグレー囲み */
+.timer-box{
   background:rgba(255,255,255,0.05);
   padding:20px;
   border-radius:12px;
-  margin-top:20px;
+  margin-top:30px; /* ← ボタン類を下げるため余白追加 */
 }
 
-/* ★ カウントダウンも揺れない */
 .time-left{
   font-size:48px;
   font-weight:700;
@@ -47,7 +55,7 @@ body{
 }
 
 .controls{
-  margin-top:14px;
+  margin-top:24px; /* ← 1行分下げる */
   display:flex;
   justify-content:center;
   gap:14px;
@@ -73,7 +81,7 @@ button{
 }
 
 .presets{
-  margin-top:18px;
+  margin-top:24px; /* ← ボタン類を下げる */
   display:flex;
   flex-wrap:wrap;
   gap:10px;
@@ -98,32 +106,34 @@ input[type="time"]{
 <body>
 <div class="container">
 
+  <div id="nowDate" class="now-date"></div>
   <div id="nowTime" class="now-time"></div>
 
-  <div class="timer">
+  <div class="timer-box">
     <div id="timeLeft" class="time-left">--:--:--</div>
     <div id="status">終了時刻を指定してください</div>
+  </div>
 
-    <div class="controls">
-      <button id="startBtn">開始</button>
-      <input id="timeInput" type="time">
-      <button id="resetBtn">リセット</button>
-    </div>
+  <div class="controls">
+    <button id="startBtn">開始</button>
+    <input id="timeInput" type="time">
+    <button id="resetBtn">リセット</button>
+  </div>
 
-    <div class="presets">
-      <button class="presetBtn" data-time="15:59">15:59</button>
-      <button class="presetBtn" data-time="17:40">17:40</button>
-      <button class="presetBtn" data-time="18:59">18:59</button>
-      <button class="presetBtn" data-time="19:47">19:47</button>
-      <button class="presetBtn" data-time="20:37">20:37</button>
-      <button class="presetBtn" data-time="20:40">20:40</button>
-    </div>
+  <div class="presets">
+    <button class="presetBtn" data-time="15:59">15:59</button>
+    <button class="presetBtn" data-time="17:40">17:40</button>
+    <button class="presetBtn" data-time="18:59">18:59</button>
+    <button class="presetBtn" data-time="19:47">19:47</button>
+    <button class="presetBtn" data-time="20:37">20:37</button>
+    <button class="presetBtn" data-time="20:40">20:40</button>
   </div>
 
 </div>
 
 <script>
 (() => {
+  const nowDate = document.getElementById("nowDate");
   const nowTime = document.getElementById("nowTime");
   const timeLeft = document.getElementById("timeLeft");
   const status = document.getElementById("status");
@@ -135,10 +145,14 @@ input[type="time"]{
   let target = null;
 
   const pad = n => String(n).padStart(2,"0");
+  const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   function updateNow(){
     const d = new Date();
-    nowTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    nowDate.textContent =
+      `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}/${week[d.getDay()]}`;
+    nowTime.textContent =
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     updateTimer();
   }
 
@@ -149,7 +163,7 @@ input[type="time"]{
     }
 
     const now = new Date();
-    now.setMilliseconds(0); // ★ ミリ秒を切り捨ててズレゼロ
+    now.setMilliseconds(0); // ★ ミリ秒切り捨てでズレゼロ
 
     const diff = Math.floor((target - now) / 1000);
 
@@ -172,7 +186,7 @@ input[type="time"]{
     const [h,m] = val.split(":").map(Number);
 
     const now = new Date();
-    now.setMilliseconds(0); // ★ 開始時点もミリ秒を切り捨てる
+    now.setMilliseconds(0);
 
     target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
 
