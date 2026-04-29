@@ -23,10 +23,6 @@ body{
   text-align:center;
 }
 
-.now{
-  margin-bottom:20px;
-}
-
 .now-time{
   font-size:48px;
   font-weight:700;
@@ -37,6 +33,7 @@ body{
   background:rgba(255,255,255,0.05);
   padding:20px;
   border-radius:12px;
+  margin-top:20px;
 }
 
 .time-left{
@@ -91,10 +88,7 @@ button{
 <body>
 <div class="container">
 
-  <div class="now">
-    <div id="nowDate"></div>
-    <div id="nowTime" class="now-time"></div>
-  </div>
+  <div id="nowTime" class="now-time"></div>
 
   <div class="timer">
     <div id="timeLeft" class="time-left">--:--:--</div>
@@ -120,7 +114,6 @@ button{
 
 <script>
 (() => {
-  const nowDate = document.getElementById("nowDate");
   const nowTime = document.getElementById("nowTime");
   const timeLeft = document.getElementById("timeLeft");
   const status = document.getElementById("status");
@@ -135,7 +128,6 @@ button{
 
   function updateNow(){
     const d = new Date();
-    nowDate.textContent = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
     nowTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     updateTimer();
   }
@@ -147,17 +139,15 @@ button{
     }
 
     const now = new Date();
-    const diff = target - now;
-    const s = Math.floor(diff/1000);
+    let diff = Math.round((target - now) / 1000); // ← 秒ズレ吸収
 
-    const h = Math.floor(Math.abs(s)/3600);
-    const m = Math.floor(Math.abs(s)%3600/60);
-    const sec = Math.abs(s)%60;
+    const h = Math.floor(Math.abs(diff)/3600);
+    const m = Math.floor(Math.abs(diff)%3600/60);
+    const s = Math.abs(diff)%60;
 
-    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(sec)}`;
-
-    status.textContent = s >= 0 ? "残り時間" : "経過時間";
-    timeLeft.style.color = s >= 0 ? "#e6eef8" : "#ff6b6b";
+    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    status.textContent = diff >= 0 ? "残り時間" : "経過時間";
+    timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
   }
 
   function start(){
@@ -190,8 +180,17 @@ button{
     btn.onclick = ()=> timeInput.value = btn.dataset.time;
   });
 
+  // ★ 初期値：1分後（秒00固定）
+  (() => {
+    const d = new Date(Date.now() + 60000);
+    timeInput.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  })();
+
   setInterval(updateNow,1000);
   updateNow();
+
+  startBtn.onclick = start;
+  resetBtn.onclick = reset;
 
 })();
 </script>
