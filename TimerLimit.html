@@ -14,10 +14,10 @@
   --preset-bg:rgba(255,255,255,0.08);
   --preset-border:rgba(255,255,255,0.15);
 
-  /* 新しい時間設定 UI の色 */
-  --time-bg:#f0f4ff;      /* 明るい青みグレー */
-  --time-border:#c7d4ff;  /* 薄い青枠 */
-  --time-text:#2a3f80;    /* 濃い青文字 */
+  /* ★ 時間設定 UI（グレー寄り） */
+  --time-bg:#e8e8e8;
+  --time-border:#cfcfcf;
+  --time-text:#2b2b2b;
 }
 
 html,body{
@@ -96,34 +96,42 @@ html,body{
   color:#ff6b6b;
 }
 
+/* ★ 時間設定とボタンを中央寄せ */
 .controls{
   display:flex;
-  flex-wrap:wrap;
+  flex-direction:column;
+  align-items:center;
   gap:10px;
   margin-top:12px;
 }
 
-/* ★ 時間設定 UI（大きく・明るく・視認性UP） */
+/* ★ 時間設定（グレー寄り・大きめ） */
 input[type="time"]{
   padding:12px 14px;
   border-radius:10px;
   border:1px solid var(--time-border);
   background:var(--time-bg);
   color:var(--time-text);
-  font-size:24px;          /* ← 文字を大きく */
+  font-size:24px;
   font-weight:600;
-  min-width:170px;
+  min-width:180px;
+  text-align:center;
 }
 
-/* 開始ボタン（強調） */
+/* ★ 開始ボタンとリセットボタンのサイズ統一 */
 button{
-  padding:10px 14px;
+  padding:12px 14px;
   border-radius:10px;
   border:0;
-  background:linear-gradient(90deg,var(--accent),#5ad0ff);
-  color:#041025;
+  width:180px; /* ← サイズ統一 */
   font-weight:600;
   cursor:pointer;
+}
+
+/* 開始ボタン（強調色） */
+#startBtn{
+  background:linear-gradient(90deg,var(--accent),#5ad0ff);
+  color:#041025;
 }
 
 /* リセット */
@@ -138,6 +146,7 @@ button.presetBtn{
   background:var(--preset-bg);
   border:1px solid var(--preset-border);
   color:#d0d7e2;
+  width:auto;
 }
 
 .presets{
@@ -150,7 +159,8 @@ button.presetBtn{
 @media(max-width:520px){
   .now-time{font-size:36px}
   .time{font-size:36px}
-  input[type="time"]{min-width:140px;font-size:22px}
+  input[type="time"]{min-width:150px;font-size:22px}
+  button{width:150px}
 }
 </style>
 </head>
