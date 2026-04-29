@@ -133,22 +133,22 @@ button{
   }
 
   function updateTimer(){
-    if(!target){
-      timeLeft.textContent = "--:--:--";
-      return;
-    }
-
-    const now = new Date();
-    let diff = Math.round((target - now) / 1000); // ← 秒ズレ吸収
-
-    const h = Math.floor(Math.abs(diff)/3600);
-    const m = Math.floor(Math.abs(diff)%3600/60);
-    const s = Math.abs(diff)%60;
-
-    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-    status.textContent = diff >= 0 ? "残り時間" : "経過時間";
-    timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
+  if(!target){
+    timeLeft.textContent = "--:--:--";
+    return;
   }
+
+  const now = new Date();
+  const diff = Math.round((target - now) / 1000); // ← これが最重要
+
+  const h = Math.floor(Math.abs(diff)/3600);
+  const m = Math.floor(Math.abs(diff)%3600/60);
+  const s = Math.abs(diff)%60;
+
+  timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+  status.textContent = diff >= 0 ? "残り時間" : "経過時間";
+  timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
+}
 
   function start(){
     const val = timeInput.value;
