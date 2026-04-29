@@ -82,11 +82,12 @@ button{
   color:#d0d7e2;
   padding:8px 12px;
   border-radius:8px;
-
- input[type="time"]{
-  font-size: 28px;   /* ← 好きな大きさに */
-  font-weight: 700;  /* ← 太字 */
 }
+
+/* ★ 時刻設定の文字サイズと太字（標準UIでも有効） */
+input[type="time"]{
+  font-size:28px;
+  font-weight:700;
 }
 </style>
 </head>
@@ -138,22 +139,24 @@ button{
   }
 
   function updateTimer(){
-  if(!target){
-    timeLeft.textContent = "--:--:--";
-    return;
+    if(!target){
+      timeLeft.textContent = "--:--:--";
+      return;
+    }
+
+    const now = new Date();
+    now.setMilliseconds(0); // ★ ミリ秒を切り捨ててズレゼロ
+
+    const diff = Math.floor((target - now) / 1000);
+
+    const h = Math.floor(Math.abs(diff)/3600);
+    const m = Math.floor(Math.abs(diff)%3600/60);
+    const s = Math.abs(diff)%60;
+
+    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    status.textContent = diff >= 0 ? "残り時間" : "経過時間";
+    timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
   }
-
-  const now = new Date();
-  const diff = Math.round((target - now) / 1000); // ← これが最重要
-
-  const h = Math.floor(Math.abs(diff)/3600);
-  const m = Math.floor(Math.abs(diff)%3600/60);
-  const s = Math.abs(diff)%60;
-
-  timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-  status.textContent = diff >= 0 ? "残り時間" : "経過時間";
-  timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
-}
 
   function start(){
     const val = timeInput.value;
@@ -164,6 +167,8 @@ button{
 
     const [h,m] = val.split(":").map(Number);
     const now = new Date();
+    now.setMilliseconds(0); // ★ 開始時点もミリ秒を切り捨てる
+
     target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
 
     if(target <= now){
