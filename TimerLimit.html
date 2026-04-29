@@ -5,341 +5,193 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TimerLimit</title>
 <style>
-:root{
-  --bg:#0f1724;
-  --card:#0b1220;
-  --accent:#7c5cff;
-  --muted:#9aa4b2;
-  --now-blue:#8fbaff;
-  --preset-bg:rgba(255,255,255,0.08);
-  --preset-border:rgba(255,255,255,0.15);
-
-  /* ★ 時刻設定（プリセットと白の中間グレー） */
-  --time-bg:#d8d8d8;
-  --time-border:#bfbfbf;
-  --time-text:#2b2b2b;
-}
-
-html,body{
-  height:100%;margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  background:linear-gradient(180deg,#071029,#0f1724);
+body{
+  margin:0;
+  background:#0f1724;
   color:#e6eef8;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
 .container{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  gap:24px;
-}
-
-/* --- NowTime --- */
-.now-card{
   width:100%;
   max-width:720px;
-  background:rgba(255,255,255,0.02);
-  border-radius:12px;
   padding:20px;
   text-align:center;
-  box-shadow:0 6px 24px rgba(2,6,23,0.6);
 }
 
-.now-date{
-  font-size:20px;
-  color:var(--now-blue);
-  margin-bottom:6px;
-  font-variant-numeric:tabular-nums;
+.now{
+  margin-bottom:20px;
 }
 
 .now-time{
   font-size:48px;
   font-weight:700;
-  color:var(--now-blue);
-  font-variant-numeric:tabular-nums;
+  color:#8fbaff;
 }
 
-/* --- Timer --- */
-.timer-card{
-  width:100%;
-  max-width:720px;
-  background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+.timer{
+  background:rgba(255,255,255,0.05);
+  padding:20px;
   border-radius:12px;
-  padding:18px;
-  box-shadow:0 6px 24px rgba(2,6,23,0.6);
 }
 
-.display{
-  text-align:center;
-  padding:14px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.02);
-}
-
-.time{
+.time-left{
   font-size:48px;
   font-weight:700;
-  letter-spacing:0.02em;
-  font-variant-numeric:tabular-nums;
+  margin-bottom:6px;
 }
 
-.label{
-  color:var(--muted);
-  margin-top:6px;
-  font-size:13px;
-}
-
-.elapsed{
-  color:#ff6b6b;
-}
-
-/* ★ 時刻設定と開始/リセットを同じ行に */
 .controls{
+  margin-top:14px;
   display:flex;
-  flex-direction:row;
   justify-content:center;
-  align-items:center;
   gap:14px;
-  margin-top:12px;
 }
 
-/* ★ 時刻設定（中間グレー） */
-input[type="time"]{
-  padding:12px 14px;
-  border-radius:10px;
-  border:1px solid var(--time-border);
-  background-color:var(--time-bg);
-  color:var(--time-text);
-  font-size:24px;
-  font-weight:600;
-  min-width:160px;
-  text-align:center;
-}
-
-/* ★ iPhone のみ appearance:none を適用 */
-@media (hover:none) and (pointer:coarse) {
-  input[type="time"]{
-    appearance:none;
-    -webkit-appearance:none;
-  }
-}
-
-/* ★ shadow DOM 内部も強制的にグレーにする */
-input[type="time"]::-webkit-datetime-edit,
-input[type="time"]::-webkit-datetime-edit-fields-wrapper,
-input[type="time"]::-webkit-datetime-edit-text,
-input[type="time"]::-webkit-datetime-edit-hour-field,
-input[type="time"]::-webkit-datetime-edit-minute-field,
-input[type="time"]::-webkit-datetime-edit-second-field,
-input[type="time"]::-webkit-datetime-edit-ampm-field {
-  background-color:var(--time-bg);
-  color:var(--time-text);
-}
-
-input[type="time"]::-webkit-calendar-picker-indicator {
-  opacity:0;
-}
-
-/* ボタン共通サイズ */
 button{
-  padding:12px 14px;
+  padding:10px 14px;
   border-radius:10px;
   border:0;
-  width:140px;
   font-weight:600;
   cursor:pointer;
 }
 
-/* 開始（左） */
 #startBtn{
-  background:linear-gradient(90deg,var(--accent),#5ad0ff);
+  background:linear-gradient(90deg,#7c5cff,#5ad0ff);
   color:#041025;
 }
 
-/* リセット（右） */
 #resetBtn{
   background:transparent;
-  border:1px solid rgba(255,255,255,0.06);
-  color:var(--muted);
-}
-
-/* プリセット（薄い色のまま） */
-button.presetBtn{
-  background:var(--preset-bg);
-  border:1px solid var(--preset-border);
-  color:#d0d7e2;
-  width:auto;
+  border:1px solid rgba(255,255,255,0.2);
+  color:#9aa4b2;
 }
 
 .presets{
+  margin-top:18px;
   display:flex;
   flex-wrap:wrap;
   gap:10px;
-  margin-top:18px;
+  justify-content:center;
 }
 
-@media(max-width:520px){
-  .now-time{font-size:36px}
-  .time{font-size:36px}
-  input[type="time"]{min-width:140px;font-size:22px}
-  button{width:120px}
+.presetBtn{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#d0d7e2;
+  padding:8px 12px;
+  border-radius:8px;
 }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- NowTime -->
-  <div class="now-card">
-    <div id="nowDate" class="now-date">----/--/-- ---</div>
-    <div id="nowTime" class="now-time">--:--:--</div>
+  <div class="now">
+    <div id="nowDate"></div>
+    <div id="nowTime" class="now-time"></div>
   </div>
 
-  <!-- Timer -->
-  <div class="timer-card">
+  <div class="timer">
+    <div id="timeLeft" class="time-left">--:--:--</div>
+    <div id="status">終了時刻を指定してください</div>
 
-    <div class="display">
-      <div id="timeText" class="time">--:--:--</div>
-      <div id="status" class="label">終了時刻を指定してください</div>
-    </div>
-
-    <!-- ★ 時刻設定と開始/リセットが同じ行 -->
     <div class="controls">
       <button id="startBtn">開始</button>
-      <input id="timeInput" type="time" step="1">
+      <input id="timeInput" type="time">
       <button id="resetBtn">リセット</button>
     </div>
 
     <div class="presets">
-      <button class="presetBtn" data-time="15:59:00">15:59</button>
-      <button class="presetBtn" data-time="17:40:00">17:40</button>
-      <button class="presetBtn" data-time="18:59:00">18:59</button>
-      <button class="presetBtn" data-time="19:47:00">19:47</button>
-      <button class="presetBtn" data-time="20:37:00">20:37</button>
-      <button class="presetBtn" data-time="20:40:00">20:40</button>
+      <button class="presetBtn" data-time="15:59">15:59</button>
+      <button class="presetBtn" data-time="17:40">17:40</button>
+      <button class="presetBtn" data-time="18:59">18:59</button>
+      <button class="presetBtn" data-time="19:47">19:47</button>
+      <button class="presetBtn" data-time="20:37">20:37</button>
+      <button class="presetBtn" data-time="20:40">20:40</button>
     </div>
-
   </div>
 
 </div>
 
 <script>
 (() => {
-  /* --- NowTime（秒の境界に完全同期） --- */
-  const nowDate = document.getElementById('nowDate');
-  const nowTime = document.getElementById('nowTime');
-  const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  const pad = n => String(n).padStart(2,'0');
-
-  let updateTimer = () => {};
-
-  function updateNow(){
-    const d = new Date();
-    nowTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    nowDate.textContent = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${week[d.getDay()]}`;
-
-    updateTimer(); /* Timer を NowTime に同期 */
-  }
-
-  /* ★ 秒の境界に完全同期する再帰ループ */
-  function startNowTimeSync(){
-    function sync(){
-      const now = new Date();
-      const delay = 1000 - now.getMilliseconds();
-
-      setTimeout(() => {
-        updateNow();
-        sync(); /* 再帰で正確に 1 秒ごと */
-      }, delay);
-    }
-    sync();
-  }
-
-  startNowTimeSync();
-
-  /* --- Timer --- */
-  const timeInput = document.getElementById('timeInput');
-  const startBtn  = document.getElementById('startBtn');
-  const resetBtn  = document.getElementById('resetBtn');
-  const timeText  = document.getElementById('timeText');
-  const status    = document.getElementById('status');
-  const presetBtns = document.querySelectorAll('.presetBtn');
+  const nowDate = document.getElementById("nowDate");
+  const nowTime = document.getElementById("nowTime");
+  const timeLeft = document.getElementById("timeLeft");
+  const status = document.getElementById("status");
+  const timeInput = document.getElementById("timeInput");
+  const startBtn = document.getElementById("startBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const presets = document.querySelectorAll(".presetBtn");
 
   let target = null;
 
-  const formatSpan = ms => {
-    const s = Math.floor(Math.abs(ms)/1000);
-    return `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
-  };
+  const pad = n => String(n).padStart(2,"0");
 
-  function parseToTarget(val){
-    const [h,m,s] = val.split(':').map(v => parseInt(v,10));
-    if(isNaN(h)||isNaN(m)) return null;
-
-    const now = new Date();
-    const t = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,s||0);
-
-    if(t <= now){
-      t.setDate(t.getDate()+1);
-    }
-    return t;
+  function updateNow(){
+    const d = new Date();
+    nowDate.textContent = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+    nowTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    updateTimer();
   }
 
-  updateTimer = function(){
-    if(!target) return;
-
-    const diff = target - new Date();
-    timeText.textContent = formatSpan(diff);
-
-    if(diff >= 0){
-      timeText.classList.remove('elapsed');
-      status.textContent = '残り時間';
-    } else {
-      timeText.classList.add('elapsed');
-      status.textContent = '経過時間';
-    }
-  };
-
-  function start(){
-    const t = parseToTarget(timeInput.value);
-    if(!t){
-      alert('有効な時刻を選んでください');
+  function updateTimer(){
+    if(!target){
+      timeLeft.textContent = "--:--:--";
       return;
     }
 
-    target = t;
+    const now = new Date();
+    const diff = target - now;
+    const s = Math.floor(diff/1000);
+
+    const h = Math.floor(Math.abs(s)/3600);
+    const m = Math.floor(Math.abs(s)%3600/60);
+    const sec = Math.abs(s)%60;
+
+    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(sec)}`;
+
+    status.textContent = s >= 0 ? "残り時間" : "経過時間";
+    timeLeft.style.color = s >= 0 ? "#e6eef8" : "#ff6b6b";
+  }
+
+  function start(){
+    const val = timeInput.value;
+    if(!val){
+      alert("時刻を入力してください");
+      return;
+    }
+
+    const [h,m] = val.split(":").map(Number);
+    const now = new Date();
+    target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
+
+    if(target <= now){
+      target.setDate(target.getDate()+1);
+    }
+
     updateTimer();
     startBtn.disabled = true;
   }
 
   function reset(){
     target = null;
-
-    timeText.textContent = '--:--:--';
-    timeText.classList.remove('elapsed');
-    status.textContent = '終了時刻を指定してください';
-
     startBtn.disabled = false;
+    updateTimer();
+    status.textContent = "終了時刻を指定してください";
   }
 
-  presetBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      timeInput.value = btn.dataset.time;
-    });
+  presets.forEach(btn=>{
+    btn.onclick = ()=> timeInput.value = btn.dataset.time;
   });
 
-  // 初期値：1分後
-  (() => {
-    const d = new Date(Date.now()+60000);
-    timeInput.value = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  })();
-
-  startBtn.addEventListener('click', start);
-  resetBtn.addEventListener('click', reset);
-  timeInput.addEventListener('keydown', e => { if(e.key==='Enter') start(); });
+  setInterval(updateNow,1000);
+  updateNow();
 
 })();
 </script>
