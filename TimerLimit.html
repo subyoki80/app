@@ -23,7 +23,7 @@ body{
   text-align:center;
 }
 
-/* ★ 日付（小さめ） */
+/* ★ 日付（現在時刻と同じ色） */
 .now-date{
   font-size:18px;
   color:#8fbaff;
@@ -44,7 +44,7 @@ body{
   background:rgba(255,255,255,0.05);
   padding:20px;
   border-radius:12px;
-  margin-top:30px; /* ← ボタン類を下げるため余白追加 */
+  margin-top:30px;
 }
 
 .time-left{
@@ -55,7 +55,7 @@ body{
 }
 
 .controls{
-  margin-top:24px; /* ← 1行分下げる */
+  margin-top:24px;
   display:flex;
   justify-content:center;
   gap:14px;
@@ -81,7 +81,7 @@ button{
 }
 
 .presets{
-  margin-top:24px; /* ← ボタン類を下げる */
+  margin-top:24px;
   display:flex;
   flex-wrap:wrap;
   gap:10px;
@@ -121,7 +121,7 @@ input[type="time"]{
   </div>
 
   <div class="presets">
-    <button class="presetBtn" data-time="15:59">12:00</button>
+    <button class="presetBtn" data-time="12:00">12:00</button>
     <button class="presetBtn" data-time="15:59">15:59</button>
     <button class="presetBtn" data-time="17:40">17:40</button>
     <button class="presetBtn" data-time="18:59">18:59</button>
