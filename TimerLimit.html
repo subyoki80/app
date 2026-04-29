@@ -14,9 +14,9 @@
   --preset-bg:rgba(255,255,255,0.08);
   --preset-border:rgba(255,255,255,0.15);
 
-  /* 時刻設定（グレー寄り） */
-  --time-bg:#e8e8e8;
-  --time-border:#cfcfcf;
+  /* ★ 時刻設定（プリセットと白の中間グレー） */
+  --time-bg:#d8d8d8;
+  --time-border:#bfbfbf;
   --time-text:#2b2b2b;
 }
 
@@ -96,16 +96,17 @@ html,body{
   color:#ff6b6b;
 }
 
-/* 時刻設定とボタン */
+/* ★ 時刻設定と開始/リセットを同じ行に */
 .controls{
   display:flex;
-  flex-direction:column;
+  flex-direction:row;
+  justify-content:center;
   align-items:center;
-  gap:10px;
+  gap:14px;
   margin-top:12px;
 }
 
-/* 時刻設定（グレー寄り） */
+/* ★ 時刻設定（中間グレー） */
 input[type="time"]{
   padding:12px 14px;
   border-radius:10px;
@@ -114,15 +115,8 @@ input[type="time"]{
   color:var(--time-text);
   font-size:24px;
   font-weight:600;
-  min-width:180px;
+  min-width:160px;
   text-align:center;
-}
-
-/* ボタン横並び */
-.btn-row{
-  display:flex;
-  gap:14px;
-  justify-content:center;
 }
 
 /* ボタン共通サイズ */
@@ -130,12 +124,12 @@ button{
   padding:12px 14px;
   border-radius:10px;
   border:0;
-  width:160px;
+  width:140px;
   font-weight:600;
   cursor:pointer;
 }
 
-/* 開始ボタン（左） */
+/* 開始（左） */
 #startBtn{
   background:linear-gradient(90deg,var(--accent),#5ad0ff);
   color:#041025;
@@ -148,7 +142,7 @@ button{
   color:var(--muted);
 }
 
-/* プリセット */
+/* プリセット（薄い色のまま） */
 button.presetBtn{
   background:var(--preset-bg);
   border:1px solid var(--preset-border);
@@ -166,8 +160,8 @@ button.presetBtn{
 @media(max-width:520px){
   .now-time{font-size:36px}
   .time{font-size:36px}
-  input[type="time"]{min-width:150px;font-size:22px}
-  button{width:140px}
+  input[type="time"]{min-width:140px;font-size:22px}
+  button{width:120px}
 }
 </style>
 </head>
@@ -188,13 +182,11 @@ button.presetBtn{
       <div id="status" class="label">終了時刻を指定してください</div>
     </div>
 
+    <!-- ★ 時刻設定と開始/リセットが同じ行 -->
     <div class="controls">
+      <button id="startBtn">開始</button>
       <input id="timeInput" type="time" step="1">
-
-      <div class="btn-row">
-        <button id="startBtn">開始</button>
-        <button id="resetBtn">リセット</button>
-      </div>
+      <button id="resetBtn">リセット</button>
     </div>
 
     <div class="presets">
@@ -218,7 +210,6 @@ button.presetBtn{
   const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const pad = n => String(n).padStart(2,'0');
 
-  /* Timer の更新関数を後で呼ぶために外に置く */
   let updateTimer = () => {};
 
   function updateNow(){
@@ -226,8 +217,7 @@ button.presetBtn{
     nowTime.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     nowDate.textContent = `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${week[d.getDay()]}`;
 
-    /* ★ NowTime の更新タイミングで Timer も更新 */
-    updateTimer();
+    updateTimer(); /* ★ Timer を NowTime に同期 */
   }
 
   setInterval(updateNow, 500);
@@ -261,7 +251,6 @@ button.presetBtn{
     return t;
   }
 
-  /* ★ Timer の更新関数（NowTime から呼ばれる） */
   updateTimer = function(){
     if(!target) return;
 
