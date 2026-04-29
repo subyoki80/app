@@ -117,9 +117,14 @@ input[type="time"]{
   font-weight:600;
   min-width:160px;
   text-align:center;
+}
 
-  appearance:none;
-  -webkit-appearance:none;
+/* ★ iPhone のみ appearance:none を適用 */
+@media (hover:none) and (pointer:coarse) {
+  input[type="time"]{
+    appearance:none;
+    -webkit-appearance:none;
+  }
 }
 
 /* ★ shadow DOM 内部も強制的にグレーにする */
@@ -239,14 +244,18 @@ button.presetBtn{
     updateTimer(); /* Timer を NowTime に同期 */
   }
 
+  /* ★ 秒の境界に完全同期する再帰ループ */
   function startNowTimeSync(){
-    const now = new Date();
-    const msToNextSecond = 1000 - now.getMilliseconds();
+    function sync(){
+      const now = new Date();
+      const delay = 1000 - now.getMilliseconds();
 
-    setTimeout(() => {
-      updateNow();
-      setInterval(updateNow, 1000);
-    }, msToNextSecond);
+      setTimeout(() => {
+        updateNow();
+        sync(); /* 再帰で正確に 1 秒ごと */
+      }, delay);
+    }
+    sync();
   }
 
   startNowTimeSync();
