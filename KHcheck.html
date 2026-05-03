@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Checklist</title>
-
 <style>
 body{
   margin:0;
@@ -15,40 +15,28 @@ body{
   -webkit-user-select:none;
   user-select:none;
 }
-
 #zoomArea{
   position:absolute;
-  top:0; left:0; right:0; bottom:0;
+  inset:0;
   overflow:auto;
   background:#000;
 }
-
-/* ★ ズーム対象はこのコンテナだけ */
 #zoomContainer{
   position:relative;
   width:1290px;
   height:1835px;
-  transform-origin: 0 0;
+  transform-origin:0 0;
 }
-
-/* 画像レイヤー */
 #imageLayer{
   position:absolute;
-  top:0; left:0;
-  width:1290px;
-  height:1835px;
+  inset:0;
   background:url("img/checklist.png") no-repeat;
   background-size:100% 100%;
 }
-
-/* ✔ レイヤー（画像と同じ座標系） */
 #checkLayer{
   position:absolute;
-  top:0; left:0;
-  width:1290px;
-  height:1835px;
+  inset:0;
 }
-
 .check{
   position:absolute;
   width:32px;
@@ -60,7 +48,6 @@ body{
   text-align:center;
   user-select:none;
 }
-
 #resetBtn{
   position:fixed;
   top:10px;
@@ -88,7 +75,7 @@ body{
 
 <script>
 const zoomContainer = document.getElementById("zoomContainer");
-const checkLayer = document.getElementById("checkLayer");
+const checkLayer    = document.getElementById("checkLayer");
 
 let zoom = 1;
 let startDist = 0;
@@ -96,12 +83,13 @@ let isPinching = false;
 let longPress = false;
 let touchMoved = false;
 let pinchEndTimer = null;
+let lastTap = 0;
 
 /* 2本指距離 */
 function getDistance(t){
   const dx = t[0].clientX - t[1].clientX;
   const dy = t[0].clientY - t[1].clientY;
-  return Math.sqrt(dx*dx + dy*dy);
+  return Math.hypot(dx, dy);
 }
 
 /* ピンチ開始 */
@@ -109,49 +97,52 @@ zoomContainer.addEventListener("touchstart", e=>{
   if(e.touches.length === 2){
     isPinching = true;
     clearTimeout(pinchEndTimer);
-
     startDist = getDistance(e.touches);
 
     const rect = zoomContainer.getBoundingClientRect();
-    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-
+    const cx = (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left;
+    const cy = (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top;
     zoomContainer.style.transformOrigin = `${cx}px ${cy}px`;
   }
 });
 
-/* ピンチ中 */
+/* ピンチ中 or スクロール中 */
 zoomContainer.addEventListener("touchmove", e=>{
   if(e.touches.length === 2){
     e.preventDefault();
-
     const newDist = getDistance(e.touches);
-    const scale = newDist / startDist;
-
+    const scale   = newDist / startDist;
     zoom *= scale;
     zoom = Math.max(0.3, Math.min(3.0, zoom));
-
     zoomContainer.style.transform = `scale(${zoom})`;
-
     startDist = newDist;
-  } else {
+  }else{
     touchMoved = true;
   }
-}, { passive:false });
+},{passive:false});
 
-/* ピンチ終了 */
+/* ピンチ終了フラグ */
 zoomContainer.addEventListener("touchend", e=>{
   if(e.touches.length === 0){
-    pinchEndTimer = setTimeout(()=>{
-      isPinching = false;
-    }, 200);
+    pinchEndTimer = setTimeout(()=>{ isPinching = false; }, 200);
   }
 });
+
+/* ダブルタップ無効化 */
+zoomContainer.addEventListener("touchend", e=>{
+  const now = Date.now();
+  if(now - lastTap < 300){
+    e.preventDefault();
+    lastTap = 0;
+    return;
+  }
+  lastTap = now;
+},{passive:false});
 
 /* タップでチェック追加 */
 zoomContainer.addEventListener("touchend", e=>{
   if(isPinching) return;
-  if(longPress) return;
+  if(longPress)  return;
   if(touchMoved){ touchMoved = false; return; }
   if(e.target.classList.contains("check")) return;
 
@@ -164,7 +155,6 @@ zoomContainer.addEventListener("touchend", e=>{
   div.textContent = "✔";
   div.style.left = (x - 16) + "px";
   div.style.top  = (y - 16) + "px";
-
   checkLayer.appendChild(div);
 
   attachLongPress(div);
@@ -173,7 +163,6 @@ zoomContainer.addEventListener("touchend", e=>{
 /* 長押しで削除 */
 function attachLongPress(el){
   let timer;
-
   el.addEventListener("touchstart", ()=>{
     longPress = false;
     timer = setTimeout(()=>{
@@ -181,10 +170,9 @@ function attachLongPress(el){
       el.remove();
     }, 500);
   });
-
   el.addEventListener("touchend", ()=>{
     clearTimeout(timer);
-    setTimeout(()=> longPress = false, 50);
+    setTimeout(()=>{ longPress = false; }, 50);
   });
 }
 
