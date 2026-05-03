@@ -10,25 +10,89 @@ body{
   background:#0f1724;
   color:#e6eef8;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  display:flex;
-  justify-content:center;
-  align-items:center;
   height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-.container{
+/* ★ 最上部に固定：ALL Delete */
+.header{
+  position:fixed;
+  top:0;
+  left:0;
   width:100%;
-  max-width:720px;
-  padding:20px;
+  padding:10px;
+  background:#0f1724;
   text-align:center;
+  z-index:10;
 }
 
-/* ★ カウンター数字（揺れゼロ） */
-.count{
-  font-size:80px;
+#allDeleteBtn{
+  width:90%;
+  padding:10px;
+  border-radius:8px;
+  background:rgba(255,80,80,0.15);
+  border:1px solid rgba(255,80,80,0.4);
+  color:#ff8080;
+  font-size:16px;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+/* ★ ログエリア（上下固定の間でスクロール） */
+.log-area{
+  flex:1;
+  margin-top:70px;   /* ヘッダー分 */
+  margin-bottom:160px; /* フッター分 */
+  overflow-y:auto;
+  padding:10px 20px;
+}
+
+/* ★ ログ1行（中央揃え） */
+.log-item{
+  display:flex;
+  justify-content:center; /* ← 数値を中央に */
+  align-items:center;
+  position:relative;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  font-size:22px;
   font-weight:700;
   font-variant-numeric: tabular-nums;
-  margin-bottom:30px;
+}
+
+/* Delete ボタンは右端に固定 */
+.log-delete{
+  position:absolute;
+  right:0;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.2);
+  color:#9aa4b2;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+/* ★ 最下部に固定：カウンター＋ボタン */
+.footer{
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:#0f1724;
+  padding:20px 0;
+  text-align:center;
+  z-index:10;
+}
+
+/* カウンター数字（揺れゼロ） */
+.count{
+  font-size:70px;
+  font-weight:700;
+  font-variant-numeric: tabular-nums;
+  margin-bottom:20px;
 }
 
 /* ボタン配置 */
@@ -36,7 +100,6 @@ body{
   display:flex;
   justify-content:center;
   gap:20px;
-  margin-bottom:30px;
 }
 
 /* ボタン共通 */
@@ -69,67 +132,26 @@ button{
   border:1px solid rgba(255,255,255,0.2);
   color:#9aa4b2;
 }
-
-/* ★ ログ表示 */
-.log-area{
-  margin-top:20px;
-  text-align:left;
-  max-height:40vh;
-  overflow-y:auto;
-  padding-right:10px;
-}
-
-.log-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 0;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-  font-size:18px;
-  font-weight:600;
-  font-variant-numeric: tabular-nums;
-  color:#d0d7e2;
-}
-
-.log-delete{
-  background:transparent;
-  border:1px solid rgba(255,255,255,0.2);
-  color:#9aa4b2;
-  padding:4px 8px;
-  border-radius:6px;
-  font-size:12px;
-  cursor:pointer;
-}
-
-/* ★ ALL Delete ボタン（最下部） */
-#allDeleteBtn{
-  margin-top:16px;
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  background:rgba(255,80,80,0.15);
-  border:1px solid rgba(255,80,80,0.4);
-  color:#ff8080;
-  font-size:16px;
-  cursor:pointer;
-}
 </style>
 </head>
 <body>
-<div class="container">
 
+<!-- ★ 最上部固定：ALL Delete -->
+<div class="header">
+  <button id="allDeleteBtn">ALL Delete</button>
+</div>
+
+<!-- ★ 中央：ログ -->
+<div id="logArea" class="log-area"></div>
+
+<!-- ★ 最下部固定：カウンター＋ボタン -->
+<div class="footer">
   <div id="count" class="count">0</div>
-
   <div class="controls">
     <button id="minusBtn">-1</button>
     <button id="plusBtn">+1</button>
     <button id="resetBtn">Reset</button>
   </div>
-
-  <div id="logArea" class="log-area"></div>
-
-  <button id="allDeleteBtn">ALL Delete</button>
-
 </div>
 
 <script>
@@ -193,7 +215,7 @@ button{
   };
 
   resetBtn.onclick = () => {
-    logs.push(count);  // ★ 時間なし、数値のみ
+    logs.push(count);  // ★ 数値のみ
     count = 0;
     update();
     renderLogs();
