@@ -11,18 +11,19 @@ body{
   color:#e6eef8;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   height:100vh;
-  overflow:hidden; /* ← iPhoneのバウンス防止 */
+  display:flex;
+  flex-direction:column;
+  overflow:hidden; /* ← Safariバウンス防止の本命 */
 }
 
-/* ★ 最上部固定：ALL Delete */
-.header{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
+/* =========================
+   Header（最上部固定）
+========================= */
+header{
+  flex:0 0 auto;
   padding:10px;
-  background:#0f1724;
   text-align:center;
+  background:#0f1724;
   z-index:10;
 }
 
@@ -38,34 +39,33 @@ body{
   touch-action:manipulation;
 }
 
-/* ★ ログエリア（位置と高さを固定） */
-.log-area{
-  position:fixed;
-  top:70px;                 /* ← ヘッダー高さと一致 */
-  left:0;
-  width:100%;
-  height:calc(100vh - 230px); /* ← フッター分を引く */
+/* =========================
+   Main（ログエリア）
+========================= */
+main{
+  flex:1 1 auto;
   overflow-y:auto;
   padding:10px 20px;
 }
 
-/* ★ ログ1行（中央揃え） */
+/* ログ1行 */
 .log-item{
   display:flex;
-  justify-content:center;
+  justify-content:space-between;
   align-items:center;
-  position:relative;
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.log-value{
+  flex:1;
+  text-align:center;
   font-size:22px;
   font-weight:700;
   font-variant-numeric: tabular-nums;
 }
 
-/* Delete ボタンは右端に固定 */
 .log-delete{
-  position:absolute;
-  right:0;
   background:transparent;
   border:1px solid rgba(255,255,255,0.2);
   color:#9aa4b2;
@@ -76,19 +76,16 @@ body{
   touch-action:manipulation;
 }
 
-/* ★ 最下部固定：カウンター＋ボタン */
-.footer{
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-  background:#0f1724;
+/* =========================
+   Footer（最下部固定）
+========================= */
+footer{
+  flex:0 0 auto;
   padding:20px 0;
   text-align:center;
-  z-index:10;
+  background:#0f1724;
 }
 
-/* カウンター数字（揺れゼロ） */
 .count{
   font-size:70px;
   font-weight:700;
@@ -96,14 +93,12 @@ body{
   margin-bottom:20px;
 }
 
-/* ボタン配置 */
 .controls{
   display:flex;
   justify-content:center;
   gap:20px;
 }
 
-/* ボタン共通 */
 button{
   padding:16px 24px;
   border-radius:12px;
@@ -111,23 +106,20 @@ button{
   font-size:24px;
   font-weight:700;
   cursor:pointer;
-  touch-action: manipulation;
+  touch-action:manipulation;
 }
 
-/* +1 */
 #plusBtn{
   background:linear-gradient(90deg,#7c5cff,#5ad0ff);
   color:#041025;
 }
 
-/* -1 */
 #minusBtn{
   background:rgba(255,255,255,0.08);
   border:1px solid rgba(255,255,255,0.15);
   color:#d0d7e2;
 }
 
-/* Reset */
 #resetBtn{
   background:transparent;
   border:1px solid rgba(255,255,255,0.2);
@@ -137,23 +129,20 @@ button{
 </head>
 <body>
 
-<!-- ★ 最上部固定：ALL Delete -->
-<div class="header">
+<header>
   <button id="allDeleteBtn">ALL Delete</button>
-</div>
+</header>
 
-<!-- ★ 中央：ログ -->
-<div id="logArea" class="log-area"></div>
+<main id="logArea"></main>
 
-<!-- ★ 最下部固定：カウンター＋ボタン -->
-<div class="footer">
+<footer>
   <div id="count" class="count">0</div>
   <div class="controls">
     <button id="minusBtn">-1</button>
     <button id="plusBtn">+1</button>
     <button id="resetBtn">Reset</button>
   </div>
-</div>
+</footer>
 
 <script>
 (() => {
@@ -180,7 +169,7 @@ button{
       const div = document.createElement("div");
       div.className = "log-item";
       div.innerHTML = `
-        <span>${value}</span>
+        <span class="log-value">${value}</span>
         <button class="log-delete" data-index="${index}">Delete</button>
       `;
       logArea.appendChild(div);
@@ -188,14 +177,12 @@ button{
 
     document.querySelectorAll(".log-delete").forEach(btn => {
       btn.onclick = () => {
-        const i = Number(btn.dataset.index);
-        logs.splice(i, 1);
+        logs.splice(Number(btn.dataset.index), 1);
         save();
         renderLogs();
       };
     });
 
-    /* ★ 最新ログへ自動スクロール */
     logArea.scrollTop = logArea.scrollHeight;
   }
 
