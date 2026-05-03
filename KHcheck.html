@@ -1,1 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Checklist</title>
+
+<style>
+body{
+  margin:0;
+  background:#0f1724;
+  color:white;
+  font-family:-apple-system;
+  overflow:hidden;
+}
+
+/* ズーム可能エリア */
+#zoomArea{
+  width:100%;
+  height:100vh;
+  overflow:scroll;
+  touch-action:pinch-zoom;
+  background:#000;
+}
+
+/* PNG 図面（1290×1835） */
+#imageLayer{
+  position:relative;
+  width:1290px;
+  height:1835px;
+  background:url("img/checklist.png") no-repeat;
+  background-size:100% 100%;
+}
+
+/* チェック（赤・太線・32px） */
+.check{
+  position:absolute;
+  width:32px;
+  height:32px;
+  border:4px solid red;
+  border-radius:4px;
+  box-sizing:border-box;
+}
+
+/* 削除メニュー */
+.menu{
+  position:absolute;
+  background:#222;
+  color:white;
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:14px;
+  border:1px solid #555;
+  z-index:2000;
+}
+</style>
+</head>
+<body>
+
+<div id="zoomArea">
+  <div id="imageLayer"></div>
+</div>
+
+<script>
+const layer = document.getElementById("imageLayer");
+let longPressTimer = null;
+let currentCheck = null;
+
+/* クリックでチェック追加 */
+layer.addEventListener("click", e=>{
+  // 既存チェックをクリックした場合は追加しない
+  if(e.target.classList.contains("check")) return;
+
+  const rect = layer.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const div = document.createElement("div");
+  div.className = "check";
+  div.style.left = (x - 16) + "px";
+  div.style.top  = (y - 16) + "px";
+
+  layer.appendChild(div);
+
+  attachLongPress(div);
+});
+
+/* 長押しで削除メニュー */
+function attachLongPress(el){
+  el.addEventListener("touchstart", startPress);
+  el.addEventListener("mousedown", startPress);
+
+  el.addEventListener("touchend", cancelPress);
+  el.addEventListener("mouseup", cancelPress);
+  el.addEventListener("mouseleave", cancelPress);
+
+  function startPress(e){
+    e.stopPropagation();
+    currentCheck = el;
+    longPressTimer = setTimeout(()=> showMenu(el), 500);
+  }
+
+  function cancelPress(){
+    clearTimeout(longPressTimer);
+  }
+}
+
+/* 削除メニュー表示 */
+function showMenu(el){
+  const menu = document.createElement("div");
+  menu.className = "menu";
+  menu.textContent = "削除";
+
+  const rect = el.getBoundingClientRect();
+  const layerRect = layer.getBoundingClientRect();
+
+  menu.style.left = (rect.left - layerRect.left + 40) + "px";
+  menu.style.top  = (rect.top  - layerRect.top - 10) + "px";
+
+  layer.appendChild(menu);
+
+  menu.onclick = ()=>{
+    el.remove();
+    menu.remove();
+  };
+
+  // 他をタップしたら閉じる
+  setTimeout(()=>{
+    document.addEventListener("click", function close(e){
+      if(e.target !== menu){
+        menu.remove();
+        document.removeEventListener("click", close);
+      }
+    });
+  }, 10);
+}
+</script>
+
+</body>
+</html>
 
