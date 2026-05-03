@@ -17,7 +17,7 @@ body{
   user-select:none;
 }
 
-/* ブラウザのスクロール領域はそのまま使う */
+/* ブラウザのスクロール領域 */
 #zoomArea{
   position:absolute;
   inset:0;
@@ -25,7 +25,7 @@ body{
   background:#000;
 }
 
-/* ズーム対象（画像＋チェック） */
+/* ズーム対象 */
 #zoomContainer{
   position:relative;
   width:1290px;
@@ -33,7 +33,7 @@ body{
   transform-origin:0 0;
 }
 
-/* 画像レイヤー */
+/* 背景画像 */
 #imageLayer{
   position:absolute;
   inset:0;
@@ -59,7 +59,7 @@ body{
   user-select:none;
 }
 
-/* transform の外に固定して常に表示 */
+/* リセットボタン（transform の外） */
 #resetBtn{
   position:fixed;
   top:10px;
@@ -77,7 +77,6 @@ body{
 </head>
 <body>
 
-<!-- ★ transform の外に置く -->
 <button id="resetBtn">リセット</button>
 
 <div id="zoomArea">
@@ -123,7 +122,7 @@ zoomContainer.addEventListener("touchstart", e=>{
 /* ピンチ中 or スクロール中 */
 zoomContainer.addEventListener("touchmove", e=>{
   if(e.touches.length === 2){
-    e.preventDefault(); // ブラウザ側のピンチズーム抑制
+    e.preventDefault();
     const newDist = getDistance(e.touches);
     const scale   = newDist / startDist;
 
@@ -133,11 +132,11 @@ zoomContainer.addEventListener("touchmove", e=>{
 
     startDist = newDist;
   }else{
-    touchMoved = true; // スクロールなど
+    touchMoved = true;
   }
 }, {passive:false});
 
-/* 長押しで削除用の付与 */
+/* 長押し削除（iPhone/iPad） */
 function attachLongPress(el){
   let timer;
   el.addEventListener("touchstart", ()=>{
@@ -147,24 +146,19 @@ function attachLongPress(el){
       el.remove();
     }, 500);
   }, {passive:true});
+
   el.addEventListener("touchend", ()=>{
     clearTimeout(timer);
     setTimeout(()=>{ longPress = false; }, 50);
   }, {passive:true});
 }
 
-/* touchend 一括処理：
-   - ピンチ終了フラグ
-   - ダブルタップ抑制
-   - タップで✔追加
-*/
+/* touchend：✔追加・ダブルタップ抑制 */
 zoomContainer.addEventListener("touchend", e=>{
-  // ピンチ終了
   if(e.touches.length === 0 && isPinching){
     pinchEndTimer = setTimeout(()=>{ isPinching = false; }, 200);
   }
 
-  // ダブルタップ抑制（ブラウザズーム対策）
   const now = Date.now();
   if(now - lastTapTime < 300){
     e.preventDefault();
@@ -173,17 +167,10 @@ zoomContainer.addEventListener("touchend", e=>{
   }
   lastTapTime = now;
 
-  // ✔ 追加条件チェック
-  if(isPinching) return;
-  if(longPress)  return;
-  if(touchMoved){
-    touchMoved = false;
-    return;
-  }
+  if(isPinching || longPress) return;
+  if(touchMoved){ touchMoved = false; return; }
   if(e.target.classList.contains("check")) return;
 
-  // 1本指タップ位置 → 図面座標に変換
-  if(!e.changedTouches || e.changedTouches.length === 0) return;
   const rect = zoomContainer.getBoundingClientRect();
   const x = (e.changedTouches[0].clientX - rect.left) / zoom;
   const y = (e.changedTouches[0].clientY - rect.top) / zoom;
@@ -198,12 +185,38 @@ zoomContainer.addEventListener("touchend", e=>{
   attachLongPress(div);
 }, {passive:false});
 
-/* リセットボタン：✔ 全削除 */
+/* PC：左クリックで ✔ 追加 */
+zoomContainer.addEventListener("click", e=>{
+  if(e.target.classList.contains("check")) return;
+
+  const rect = zoomContainer.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / zoom;
+  const y = (e.clientY - rect.top) / zoom;
+
+  const div = document.createElement("div");
+  div.className = "check";
+  div.textContent = "✔";
+  div.style.left = (x - 16) + "px";
+  div.style.top  = (y - 16) + "px";
+  checkLayer.appendChild(div);
+
+  attachLongPress(div);
+});
+
+/* PC：右クリックで削除 */
+document.addEventListener("contextmenu", e=>{
+  e.preventDefault();
+  if(e.target.classList.contains("check")){
+    e.target.remove();
+  }
+});
+
+/* リセット */
 document.getElementById("resetBtn").onclick = ()=>{
   document.querySelectorAll(".check").forEach(c=> c.remove());
 };
 
-/* 追加の保険：ドキュメント全体で gesturestart を潰す（古い iOS 向け） */
+/* 古い iOS の gesturestart 対策 */
 document.addEventListener('gesturestart', e=>{ e.preventDefault(); }, {passive:false});
 </script>
 
