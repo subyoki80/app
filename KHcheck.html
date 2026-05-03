@@ -74,6 +74,7 @@ let startDist = 0;
 let isPinching = false;
 let longPress = false;
 let touchMoved = false;
+let pinchEndTimer = null;
 
 /* 2本指距離 */
 function getDistance(t){
@@ -86,9 +87,10 @@ function getDistance(t){
 layer.addEventListener("touchstart", e=>{
   if(e.touches.length === 2){
     isPinching = true;
+    clearTimeout(pinchEndTimer);
+
     startDist = getDistance(e.touches);
 
-    // ピンチ中心を transform-origin に設定
     const rect = layer.getBoundingClientRect();
     const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
     const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
@@ -119,13 +121,15 @@ layer.addEventListener("touchmove", e=>{
 /* ピンチ終了 */
 layer.addEventListener("touchend", e=>{
   if(e.touches.length === 0){
-    isPinching = false;
+    pinchEndTimer = setTimeout(()=>{
+      isPinching = false;
+    }, 200); // ← これが誤タップを完全に防ぐ
   }
 });
 
 /* タップでチェック追加 */
 layer.addEventListener("touchend", e=>{
-  if(isPinching) return;     // ← ピンチ中は絶対に追加しない
+  if(isPinching) return;     // ← ピンチ後200msはタップ禁止
   if(longPress) return;
   if(touchMoved){ touchMoved = false; return; }
   if(e.target.classList.contains("check")) return;
