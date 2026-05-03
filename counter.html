@@ -13,6 +13,7 @@ body{
   height:100vh;
   display:flex;
   flex-direction:column;
+  overflow:hidden; /* ← iPhoneのバウンス防止 */
 }
 
 /* ★ 最上部固定：ALL Delete */
@@ -39,11 +40,10 @@ body{
   touch-action:manipulation;
 }
 
-/* ★ ログエリア（上下固定の間でスクロール） */
+/* ★ ログエリア（高さ固定でiPhoneの戻り問題を解決） */
 .log-area{
-  flex:1;
-  margin-top:70px;     /* ヘッダー分 */
-  margin-bottom:160px; /* フッター分 */
+  position:relative;
+  height:calc(100vh - 230px); /* ← 最重要：上下固定分を引いた高さ */
   overflow-y:auto;
   padding:10px 20px;
 }
@@ -51,7 +51,7 @@ body{
 /* ★ ログ1行（中央揃え） */
 .log-item{
   display:flex;
-  justify-content:center; /* ← 数値を中央に */
+  justify-content:center;
   align-items:center;
   position:relative;
   padding:10px 0;
