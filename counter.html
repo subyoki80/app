@@ -21,8 +21,8 @@ body{
 ========================= */
 header{
   flex:0 0 auto;
+  height:60px; /* ← これが最重要：Safariが高さ0と誤認しなくなる */
   padding:10px;
-  height:60px; /* ← 追加 */
   box-sizing:border-box;
   text-align:center;
   background:#0f1724;
@@ -53,7 +53,7 @@ main{
 /* ログ1行 */
 .log-item{
   display:flex;
-  justify-content:space-between;
+  justify-content:space-between; /* ← Safariで最も安定 */
   align-items:center;
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.1);
@@ -61,7 +61,7 @@ main{
 
 .log-value{
   flex:1;
-  text-align:center;
+  text-align:center; /* ← 数値だけ中央揃え */
   font-size:22px;
   font-weight:700;
   font-variant-numeric: tabular-nums;
@@ -185,6 +185,7 @@ button{
       };
     });
 
+    /* ★ 最新ログへ自動スクロール */
     logArea.scrollTop = logArea.scrollHeight;
   }
 
