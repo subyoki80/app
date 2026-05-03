@@ -46,12 +46,13 @@ header{
   touch-action:manipulation;
 }
 
-/* ログエリア（4行分縮める必要がある → footer を上げる） */
+/* ★ ログエリアを 4 行分縮める（footer が上に移動する） */
 main{
   flex:1 1 auto;
   overflow-y:auto;
   padding:10px 20px;
   box-sizing:border-box;
+  max-height:calc(100vh - 420px); /* ← ここが今回の決定打 */
 }
 
 .log-spacer{
@@ -87,11 +88,10 @@ main{
   touch-action:manipulation;
 }
 
-/* footer（ここを上に移動させる） */
+/* footer（位置は main の高さで決まる） */
 footer{
   flex:0 0 auto;
   padding:20px 0;
-  padding-top:60px;  /* ★ 追加：4行分上に移動 */
   padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
   background:#0f1724;
   text-align:center;
