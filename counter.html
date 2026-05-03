@@ -11,6 +11,8 @@ body{
   color:#e6eef8;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   height:100vh;
+  display:flex;
+  flex-direction:column;
   overflow:hidden; /* ← Safariバウンス防止 */
 }
 
@@ -22,12 +24,11 @@ header{
   top:0;
   left:0;
   width:100%;
-  height:60px;
   padding:10px;
-  box-sizing:border-box;
-  text-align:center;
   background:#0f1724;
+  text-align:center;
   z-index:10;
+  box-sizing:border-box;
 }
 
 #allDeleteBtn{
@@ -46,11 +47,9 @@ header{
    Main（ログエリア）
 ========================= */
 main{
-  position:absolute;
-  top:60px;      /* ← header の高さ */
-  bottom:160px;  /* ← footer の高さ */
-  left:0;
-  right:0;
+  flex:1 1 auto;
+  margin-top:60px;   /* ← header の実際の高さに合わせる */
+  margin-bottom:180px; /* ← footer の実際の高さに合わせる */
   overflow-y:auto;
   padding:10px 20px;
   box-sizing:border-box;
@@ -92,12 +91,11 @@ footer{
   bottom:0;
   left:0;
   width:100%;
-  height:160px;
   padding:20px 0;
-  box-sizing:border-box;
-  text-align:center;
   background:#0f1724;
+  text-align:center;
   z-index:10;
+  box-sizing:border-box;
 }
 
 .count{
