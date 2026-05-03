@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Checklist</title>
 
 <style>
@@ -16,7 +16,7 @@ body{
   user-select:none;
 }
 
-/* スクロール領域（touch-action は指定しない） */
+/* スクロール領域 */
 #zoomArea{
   position:absolute;
   top:0;
@@ -34,6 +34,7 @@ body{
   height:1835px;
   background:url("img/checklist.png") no-repeat;
   background-size:100% 100%;
+  transform-origin: 0 0;
 }
 
 /* チェック（✔・赤・32px） */
@@ -75,23 +76,53 @@ body{
 <script>
 const layer = document.getElementById("imageLayer");
 let longPress = false;
-let isScrolling = false;
 let touchMoved = false;
 
-/* スクロール開始判定 */
-layer.addEventListener("touchmove", ()=>{
-  touchMoved = true;   // ← 指が動いたらタップ扱いにしない
+/* ズーム用変数 */
+let zoom = 1;
+let startDist = 0;
+
+/* 2本指距離計算 */
+function getDistance(touches){
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+/* ピンチ開始 */
+layer.addEventListener("touchstart", e=>{
+  if(e.touches.length === 2){
+    startDist = getDistance(e.touches);
+  }
 });
 
-/* タップでチェック追加（touchend 使用） */
+/* ピンチ中 */
+layer.addEventListener("touchmove", e=>{
+  if(e.touches.length === 2){
+    e.preventDefault();  // ← Safari で必要
+    const newDist = getDistance(e.touches);
+    const scale = newDist / startDist;
+
+    zoom *= scale;
+    zoom = Math.max(0.5, Math.min(3.0, zoom)); // A の範囲
+
+    layer.style.transform = `scale(${zoom})`;
+
+    startDist = newDist;
+  } else {
+    touchMoved = true; // スクロール判定
+  }
+}, { passive:false });
+
+/* タップでチェック追加 */
 layer.addEventListener("touchend", e=>{
   if(longPress) return;
-  if(touchMoved) { touchMoved = false; return; }  // ← スクロール中は無効
+  if(touchMoved){ touchMoved = false; return; }
   if(e.target.classList.contains("check")) return;
 
   const rect = layer.getBoundingClientRect();
-  const x = e.changedTouches[0].clientX - rect.left;
-  const y = e.changedTouches[0].clientY - rect.top;
+  const x = (e.changedTouches[0].clientX - rect.left) / zoom;
+  const y = (e.changedTouches[0].clientY - rect.top) / zoom;
 
   const div = document.createElement("div");
   div.className = "check";
@@ -108,25 +139,18 @@ layer.addEventListener("touchend", e=>{
 function attachLongPress(el){
   let timer;
 
-  el.addEventListener("touchstart", start);
-  el.addEventListener("mousedown", start);
-
-  el.addEventListener("touchend", end);
-  el.addEventListener("mouseup", end);
-  el.addEventListener("mouseleave", end);
-
-  function start(e){
+  el.addEventListener("touchstart", ()=>{
     longPress = false;
     timer = setTimeout(()=>{
       longPress = true;
       el.remove();
     }, 500);
-  }
+  });
 
-  function end(){
+  el.addEventListener("touchend", ()=>{
     clearTimeout(timer);
     setTimeout(()=> longPress = false, 50);
-  }
+  });
 }
 
 /* リセットボタン：全削除 */
