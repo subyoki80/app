@@ -17,7 +17,7 @@ body{
   user-select:none;
 }
 
-/* ブラウザのスクロール領域 */
+/* ブラウザスクロール領域 */
 #zoomArea{
   position:absolute;
   inset:0;
@@ -53,7 +53,8 @@ body{
   height:32px;
   font-size:32px;
   font-weight:900;
-  color:red;
+  color:red !important;
+  -webkit-text-fill-color:red !important; /* ← iPad Safari 対策 */
   line-height:32px;
   text-align:center;
   user-select:none;
@@ -90,7 +91,14 @@ body{
 const zoomContainer = document.getElementById("zoomContainer");
 const checkLayer    = document.getElementById("checkLayer");
 
-let zoom = 1;
+/* ★ 初期倍率 0.5 */
+let zoom = 0.5;
+
+/* ページ読み込み時に初期倍率を適用 */
+window.onload = ()=>{
+  zoomContainer.style.transform = "scale(0.5)";
+};
+
 let startDist = 0;
 let isPinching = false;
 let longPress = false;
