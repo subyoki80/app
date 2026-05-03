@@ -16,14 +16,14 @@ body{
   overflow:hidden;
 }
 
-/* ★ All Delete の上に置く透明スペーサー（最小限） */
+/* 上部スペーサー（All Delete の位置安定用） */
 .top-spacer{
   height:40px;
   pointer-events:none;
   opacity:0;
 }
 
-/* ★ header を sticky にする（これが決定打） */
+/* header は sticky で安定 */
 header{
   position:sticky;
   top:0;
@@ -46,7 +46,7 @@ header{
   touch-action:manipulation;
 }
 
-/* Main（ログエリア） */
+/* ログエリア */
 main{
   flex:1 1 auto;
   overflow-y:auto;
@@ -54,7 +54,6 @@ main{
   box-sizing:border-box;
 }
 
-/* ログ側のスペーサー（バウンス対策） */
 .log-spacer{
   height:60px;
   pointer-events:none;
@@ -88,7 +87,7 @@ main{
   touch-action:manipulation;
 }
 
-/* Footer（固定風） */
+/* footer（固定風） */
 footer{
   flex:0 0 auto;
   padding:20px 0;
@@ -136,6 +135,13 @@ button{
   border:1px solid rgba(255,255,255,0.2);
   color:#9aa4b2;
 }
+
+/* ★ footer の下に透明スペーサーを追加（ホームバー対策） */
+.bottom-spacer{
+  height:40px;   /* ← ここを 30〜60px で微調整可能 */
+  pointer-events:none;
+  opacity:0;
+}
 </style>
 </head>
 <body>
@@ -158,6 +164,9 @@ button{
     <button id="resetBtn">Reset</button>
   </div>
 </footer>
+
+<!-- ★ 最下部スペーサー（ホームバー誤タップ防止） -->
+<div class="bottom-spacer"></div>
 
 <script>
 (() => {
