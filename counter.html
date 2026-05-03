@@ -16,9 +16,18 @@ body{
   overflow:hidden;
 }
 
-/* 上部：All Delete（常に見える・余計な spacer なし） */
+/* 上部スペーサー（All Delete の位置安定用） */
+.top-spacer{
+  height:40px;
+  pointer-events:none;
+  opacity:0;
+}
+
+/* header は sticky で安定 */
 header{
-  flex:0 0 auto;
+  position:sticky;
+  top:0;
+  z-index:10;
   padding:10px;
   background:#0f1724;
   text-align:center;
@@ -37,12 +46,18 @@ header{
   touch-action:manipulation;
 }
 
-/* 中央：ログだけスクロールさせる */
+/* ログエリア（4行分縮める必要がある → footer を上げる） */
 main{
   flex:1 1 auto;
   overflow-y:auto;
   padding:10px 20px;
   box-sizing:border-box;
+}
+
+.log-spacer{
+  height:60px;
+  pointer-events:none;
+  opacity:0;
 }
 
 .log-item{
@@ -72,11 +87,11 @@ main{
   touch-action:manipulation;
 }
 
-/* 下部：カウント＋ボタン（常に下・安全な余白付き） */
+/* footer（ここを上に移動させる） */
 footer{
   flex:0 0 auto;
-  padding:16px 0 24px;
-  /* iPhone ホームバー対策：安全領域を足す */
+  padding:20px 0;
+  padding-top:60px;  /* ★ 追加：4行分上に移動 */
   padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
   background:#0f1724;
   text-align:center;
@@ -126,11 +141,15 @@ button{
 </head>
 <body>
 
+<div class="top-spacer"></div>
+
 <header>
   <button id="allDeleteBtn">ALL Delete</button>
 </header>
 
-<main id="logArea"></main>
+<main id="logArea">
+  <div class="log-spacer"></div>
+</main>
 
 <footer>
   <div id="count" class="count">0</div>
@@ -161,7 +180,7 @@ button{
   }
 
   function renderLogs(){
-    logArea.innerHTML = "";
+    logArea.innerHTML = '<div class="log-spacer"></div>';
     logs.forEach((value, index) => {
       const div = document.createElement("div");
       div.className = "log-item";
