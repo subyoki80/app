@@ -16,7 +16,14 @@ body{
   overflow:hidden;
 }
 
-/* Header（固定風） */
+/* ★ All Delete の上に置く透明スペーサー（あなたの提案を正しく実装） */
+.top-spacer{
+  height:50px;        /* ← 実機に合わせて 40〜70px で微調整可能 */
+  pointer-events:none;
+  opacity:0;
+}
+
+/* Header（固定風だが fixed は使わない） */
 header{
   flex:0 0 auto;
   padding:10px;
@@ -45,9 +52,9 @@ main{
   box-sizing:border-box;
 }
 
-/* ← ここが今回の決定打：透明スペーサー */
-.spacer{
-  height:60px; /* 上部2行分の高さを確保 */
+/* ログ側のスペーサー（バウンス対策） */
+.log-spacer{
+  height:60px;
   pointer-events:none;
   opacity:0;
 }
@@ -132,12 +139,15 @@ button{
 </head>
 <body>
 
+<!-- ★ All Delete の上に透明スペーサー -->
+<div class="top-spacer"></div>
+
 <header>
   <button id="allDeleteBtn">ALL Delete</button>
 </header>
 
 <main id="logArea">
-  <div class="spacer"></div> <!-- ← Safari誤認識を防ぐ透明スペーサー -->
+  <div class="log-spacer"></div>
 </main>
 
 <footer>
@@ -169,7 +179,7 @@ button{
   }
 
   function renderLogs(){
-    logArea.innerHTML = '<div class="spacer"></div>'; /* ← スペーサーを維持 */
+    logArea.innerHTML = '<div class="log-spacer"></div>'; /* ← スペーサー維持 */
     logs.forEach((value, index) => {
       const div = document.createElement("div");
       div.className = "log-item";
