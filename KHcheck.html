@@ -12,6 +12,8 @@ body{
   color:white;
   font-family:-apple-system;
   overflow:hidden;
+  -webkit-user-select:none;
+  user-select:none; /* ← 長押しの範囲選択を完全無効化 */
 }
 
 /* ズーム可能エリア */
@@ -19,7 +21,7 @@ body{
   width:100%;
   height:100vh;
   overflow:scroll;
-  touch-action:pinch-zoom;
+  touch-action:pinch-zoom; /* ← ズーム有効 */
   background:#000;
 }
 
@@ -32,30 +34,37 @@ body{
   background-size:100% 100%;
 }
 
-/* チェック（赤・太線・32px） */
+/* チェック（✔・赤・太線・32px） */
 .check{
   position:absolute;
   width:32px;
   height:32px;
-  border:4px solid red;
-  border-radius:4px;
-  box-sizing:border-box;
+  font-size:32px;
+  font-weight:900;
+  color:red;
+  line-height:32px;
+  text-align:center;
+  user-select:none;
 }
 
-/* 削除メニュー */
-.menu{
-  position:absolute;
-  background:#222;
-  color:white;
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:14px;
-  border:1px solid #555;
+/* リセットボタン */
+#resetBtn{
+  position:fixed;
+  top:10px;
+  right:10px;
   z-index:2000;
+  padding:10px 16px;
+  background:#ff6666;
+  border-radius:8px;
+  border:0;
+  color:white;
+  font-size:16px;
 }
 </style>
 </head>
 <body>
+
+<button id="resetBtn">リセット</button>
 
 <div id="zoomArea">
   <div id="imageLayer"></div>
@@ -64,11 +73,9 @@ body{
 <script>
 const layer = document.getElementById("imageLayer");
 let longPressTimer = null;
-let currentCheck = null;
 
 /* クリックでチェック追加 */
 layer.addEventListener("click", e=>{
-  // 既存チェックをクリックした場合は追加しない
   if(e.target.classList.contains("check")) return;
 
   const rect = layer.getBoundingClientRect();
@@ -77,6 +84,7 @@ layer.addEventListener("click", e=>{
 
   const div = document.createElement("div");
   div.className = "check";
+  div.textContent = "✔";
   div.style.left = (x - 16) + "px";
   div.style.top  = (y - 16) + "px";
 
@@ -85,7 +93,7 @@ layer.addEventListener("click", e=>{
   attachLongPress(div);
 });
 
-/* 長押しで削除メニュー */
+/* 長押しで即削除（確認なし） */
 function attachLongPress(el){
   el.addEventListener("touchstart", startPress);
   el.addEventListener("mousedown", startPress);
@@ -96,8 +104,9 @@ function attachLongPress(el){
 
   function startPress(e){
     e.stopPropagation();
-    currentCheck = el;
-    longPressTimer = setTimeout(()=> showMenu(el), 500);
+    longPressTimer = setTimeout(()=>{
+      el.remove();   // ← 即削除
+    }, 500);
   }
 
   function cancelPress(){
@@ -105,37 +114,11 @@ function attachLongPress(el){
   }
 }
 
-/* 削除メニュー表示 */
-function showMenu(el){
-  const menu = document.createElement("div");
-  menu.className = "menu";
-  menu.textContent = "削除";
-
-  const rect = el.getBoundingClientRect();
-  const layerRect = layer.getBoundingClientRect();
-
-  menu.style.left = (rect.left - layerRect.left + 40) + "px";
-  menu.style.top  = (rect.top  - layerRect.top - 10) + "px";
-
-  layer.appendChild(menu);
-
-  menu.onclick = ()=>{
-    el.remove();
-    menu.remove();
-  };
-
-  // 他をタップしたら閉じる
-  setTimeout(()=>{
-    document.addEventListener("click", function close(e){
-      if(e.target !== menu){
-        menu.remove();
-        document.removeEventListener("click", close);
-      }
-    });
-  }, 10);
-}
+/* リセットボタン：全削除 */
+document.getElementById("resetBtn").onclick = ()=>{
+  document.querySelectorAll(".check").forEach(c=> c.remove());
+};
 </script>
 
 </body>
 </html>
-
