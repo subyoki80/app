@@ -23,13 +23,30 @@ body{
   background:#000;
 }
 
-#imageLayer{
+/* ★ ズーム対象はこのコンテナだけ */
+#zoomContainer{
   position:relative;
+  width:1290px;
+  height:1835px;
+  transform-origin: 0 0;
+}
+
+/* 画像レイヤー */
+#imageLayer{
+  position:absolute;
+  top:0; left:0;
   width:1290px;
   height:1835px;
   background:url("img/checklist.png") no-repeat;
   background-size:100% 100%;
-  transform-origin: 0 0;
+}
+
+/* ✔ レイヤー（画像と同じ座標系） */
+#checkLayer{
+  position:absolute;
+  top:0; left:0;
+  width:1290px;
+  height:1835px;
 }
 
 .check{
@@ -63,11 +80,15 @@ body{
 <button id="resetBtn">リセット</button>
 
 <div id="zoomArea">
-  <div id="imageLayer"></div>
+  <div id="zoomContainer">
+    <div id="imageLayer"></div>
+    <div id="checkLayer"></div>
+  </div>
 </div>
 
 <script>
-const layer = document.getElementById("imageLayer");
+const zoomContainer = document.getElementById("zoomContainer");
+const checkLayer = document.getElementById("checkLayer");
 
 let zoom = 1;
 let startDist = 0;
@@ -84,23 +105,23 @@ function getDistance(t){
 }
 
 /* ピンチ開始 */
-layer.addEventListener("touchstart", e=>{
+zoomContainer.addEventListener("touchstart", e=>{
   if(e.touches.length === 2){
     isPinching = true;
     clearTimeout(pinchEndTimer);
 
     startDist = getDistance(e.touches);
 
-    const rect = layer.getBoundingClientRect();
+    const rect = zoomContainer.getBoundingClientRect();
     const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
     const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
 
-    layer.style.transformOrigin = `${cx}px ${cy}px`;
+    zoomContainer.style.transformOrigin = `${cx}px ${cy}px`;
   }
 });
 
 /* ピンチ中 */
-layer.addEventListener("touchmove", e=>{
+zoomContainer.addEventListener("touchmove", e=>{
   if(e.touches.length === 2){
     e.preventDefault();
 
@@ -108,9 +129,9 @@ layer.addEventListener("touchmove", e=>{
     const scale = newDist / startDist;
 
     zoom *= scale;
-    zoom = Math.max(0.5, Math.min(3.0, zoom));
+    zoom = Math.max(0.3, Math.min(3.0, zoom));
 
-    layer.style.transform = `scale(${zoom})`;
+    zoomContainer.style.transform = `scale(${zoom})`;
 
     startDist = newDist;
   } else {
@@ -119,22 +140,22 @@ layer.addEventListener("touchmove", e=>{
 }, { passive:false });
 
 /* ピンチ終了 */
-layer.addEventListener("touchend", e=>{
+zoomContainer.addEventListener("touchend", e=>{
   if(e.touches.length === 0){
     pinchEndTimer = setTimeout(()=>{
       isPinching = false;
-    }, 200); // ← これが誤タップを完全に防ぐ
+    }, 200);
   }
 });
 
 /* タップでチェック追加 */
-layer.addEventListener("touchend", e=>{
-  if(isPinching) return;     // ← ピンチ後200msはタップ禁止
+zoomContainer.addEventListener("touchend", e=>{
+  if(isPinching) return;
   if(longPress) return;
   if(touchMoved){ touchMoved = false; return; }
   if(e.target.classList.contains("check")) return;
 
-  const rect = layer.getBoundingClientRect();
+  const rect = zoomContainer.getBoundingClientRect();
   const x = (e.changedTouches[0].clientX - rect.left) / zoom;
   const y = (e.changedTouches[0].clientY - rect.top) / zoom;
 
@@ -144,7 +165,7 @@ layer.addEventListener("touchend", e=>{
   div.style.left = (x - 16) + "px";
   div.style.top  = (y - 16) + "px";
 
-  layer.appendChild(div);
+  checkLayer.appendChild(div);
 
   attachLongPress(div);
 });
