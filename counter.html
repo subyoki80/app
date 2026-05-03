@@ -15,7 +15,7 @@ body{
   flex-direction:column;
 }
 
-/* ★ 最上部に固定：ALL Delete */
+/* ★ 最上部固定：ALL Delete */
 .header{
   position:fixed;
   top:0;
@@ -42,7 +42,7 @@ body{
 /* ★ ログエリア（上下固定の間でスクロール） */
 .log-area{
   flex:1;
-  margin-top:70px;   /* ヘッダー分 */
+  margin-top:70px;     /* ヘッダー分 */
   margin-bottom:160px; /* フッター分 */
   overflow-y:auto;
   padding:10px 20px;
@@ -75,7 +75,7 @@ body{
   touch-action:manipulation;
 }
 
-/* ★ 最下部に固定：カウンター＋ボタン */
+/* ★ 最下部固定：カウンター＋ボタン */
 .footer{
   position:fixed;
   bottom:0;
@@ -195,6 +195,9 @@ button{
         renderLogs();
       };
     });
+
+    /* ★ 最新ログが見えるように自動スクロール */
+    logArea.scrollTop = logArea.scrollHeight;
   }
 
   renderLogs();
