@@ -16,16 +16,18 @@ body{
   overflow:hidden;
 }
 
-/* ★ All Delete の上に置く透明スペーサー（2段分に増量） */
+/* ★ All Delete の上に置く透明スペーサー（最小限） */
 .top-spacer{
-  height:90px;        /* ← ここを増やした（50→90） */
+  height:40px;
   pointer-events:none;
   opacity:0;
 }
 
-/* Header（固定風） */
+/* ★ header を sticky にする（これが決定打） */
 header{
-  flex:0 0 auto;
+  position:sticky;
+  top:0;
+  z-index:10;
   padding:10px;
   background:#0f1724;
   text-align:center;
@@ -59,7 +61,6 @@ main{
   opacity:0;
 }
 
-/* ログ1行 */
 .log-item{
   display:flex;
   justify-content:space-between;
@@ -139,7 +140,6 @@ button{
 </head>
 <body>
 
-<!-- ★ All Delete の上に透明スペーサー（2段分） -->
 <div class="top-spacer"></div>
 
 <header>
