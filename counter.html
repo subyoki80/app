@@ -11,8 +11,6 @@ body{
   color:#e6eef8;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
   height:100vh;
-  display:flex;
-  flex-direction:column;
   overflow:hidden; /* ← iPhoneのバウンス防止 */
 }
 
@@ -40,10 +38,13 @@ body{
   touch-action:manipulation;
 }
 
-/* ★ ログエリア（高さ固定でiPhoneの戻り問題を解決） */
+/* ★ ログエリア（位置と高さを固定） */
 .log-area{
-  position:relative;
-  height:calc(100vh - 230px); /* ← 最重要：上下固定分を引いた高さ */
+  position:fixed;
+  top:70px;                 /* ← ヘッダー高さと一致 */
+  left:0;
+  width:100%;
+  height:calc(100vh - 230px); /* ← フッター分を引く */
   overflow-y:auto;
   padding:10px 20px;
 }
@@ -163,7 +164,6 @@ button{
   const logArea = document.getElementById("logArea");
   const allDeleteBtn = document.getElementById("allDeleteBtn");
 
-  /* ★ ローカル保存 */
   let count = Number(localStorage.getItem("simpleCounter") || 0);
   let logs = JSON.parse(localStorage.getItem("simpleCounterLogs") || "[]");
 
@@ -186,7 +186,6 @@ button{
       logArea.appendChild(div);
     });
 
-    /* Delete ボタン */
     document.querySelectorAll(".log-delete").forEach(btn => {
       btn.onclick = () => {
         const i = Number(btn.dataset.index);
@@ -196,7 +195,7 @@ button{
       };
     });
 
-    /* ★ 最新ログが見えるように自動スクロール */
+    /* ★ 最新ログへ自動スクロール */
     logArea.scrollTop = logArea.scrollHeight;
   }
 
@@ -207,18 +206,11 @@ button{
     save();
   }
 
-  plusBtn.onclick = () => {
-    count++;
-    update();
-  };
-
-  minusBtn.onclick = () => {
-    count--;
-    update();
-  };
+  plusBtn.onclick = () => { count++; update(); };
+  minusBtn.onclick = () => { count--; update(); };
 
   resetBtn.onclick = () => {
-    logs.push(count);  // ★ 数値のみ
+    logs.push(count);
     count = 0;
     update();
     renderLogs();
