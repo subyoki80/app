@@ -16,18 +16,13 @@ body{
   user-select:none;
 }
 
-/* スクロール領域 */
 #zoomArea{
   position:absolute;
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
+  top:0; left:0; right:0; bottom:0;
   overflow:auto;
   background:#000;
 }
 
-/* PNG 図面（1290×1835） */
 #imageLayer{
   position:relative;
   width:1290px;
@@ -37,7 +32,6 @@ body{
   transform-origin: 0 0;
 }
 
-/* チェック（✔・赤・32px） */
 .check{
   position:absolute;
   width:32px;
@@ -50,7 +44,6 @@ body{
   user-select:none;
 }
 
-/* リセットボタン */
 #resetBtn{
   position:fixed;
   top:10px;
@@ -75,47 +68,64 @@ body{
 
 <script>
 const layer = document.getElementById("imageLayer");
+
+let zoom = 1;
+let startDist = 0;
+let isPinching = false;
 let longPress = false;
 let touchMoved = false;
 
-/* ズーム用変数 */
-let zoom = 1;
-let startDist = 0;
-
-/* 2本指距離計算 */
-function getDistance(touches){
-  const dx = touches[0].clientX - touches[1].clientX;
-  const dy = touches[0].clientY - touches[1].clientY;
+/* 2本指距離 */
+function getDistance(t){
+  const dx = t[0].clientX - t[1].clientX;
+  const dy = t[0].clientY - t[1].clientY;
   return Math.sqrt(dx*dx + dy*dy);
 }
 
 /* ピンチ開始 */
 layer.addEventListener("touchstart", e=>{
   if(e.touches.length === 2){
+    isPinching = true;
     startDist = getDistance(e.touches);
+
+    // ピンチ中心を transform-origin に設定
+    const rect = layer.getBoundingClientRect();
+    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+
+    layer.style.transformOrigin = `${cx}px ${cy}px`;
   }
 });
 
 /* ピンチ中 */
 layer.addEventListener("touchmove", e=>{
   if(e.touches.length === 2){
-    e.preventDefault();  // ← Safari で必要
+    e.preventDefault();
+
     const newDist = getDistance(e.touches);
     const scale = newDist / startDist;
 
     zoom *= scale;
-    zoom = Math.max(0.5, Math.min(3.0, zoom)); // A の範囲
+    zoom = Math.max(0.5, Math.min(3.0, zoom));
 
     layer.style.transform = `scale(${zoom})`;
 
     startDist = newDist;
   } else {
-    touchMoved = true; // スクロール判定
+    touchMoved = true;
   }
 }, { passive:false });
 
+/* ピンチ終了 */
+layer.addEventListener("touchend", e=>{
+  if(e.touches.length === 0){
+    isPinching = false;
+  }
+});
+
 /* タップでチェック追加 */
 layer.addEventListener("touchend", e=>{
+  if(isPinching) return;     // ← ピンチ中は絶対に追加しない
   if(longPress) return;
   if(touchMoved){ touchMoved = false; return; }
   if(e.target.classList.contains("check")) return;
@@ -135,7 +145,7 @@ layer.addEventListener("touchend", e=>{
   attachLongPress(div);
 });
 
-/* 長押しで即削除 */
+/* 長押しで削除 */
 function attachLongPress(el){
   let timer;
 
@@ -153,7 +163,7 @@ function attachLongPress(el){
   });
 }
 
-/* リセットボタン：全削除 */
+/* リセット */
 document.getElementById("resetBtn").onclick = ()=>{
   document.querySelectorAll(".check").forEach(c=> c.remove());
 };
