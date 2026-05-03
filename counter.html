@@ -13,12 +13,10 @@ body{
   height:100vh;
   display:flex;
   flex-direction:column;
-  overflow:hidden; /* ← Safariバウンス防止 */
+  overflow:hidden;
 }
 
-/* =========================
-   Header（固定風だが fixed は使わない）
-========================= */
+/* Header（固定風だが fixed は使わない） */
 header{
   flex:0 0 auto;
   padding:10px;
@@ -39,9 +37,7 @@ header{
   touch-action:manipulation;
 }
 
-/* =========================
-   Main（ログエリア：flex:1 が最も安定）
-========================= */
+/* Main（ログエリア） */
 main{
   flex:1 1 auto;
   overflow-y:auto;
@@ -77,9 +73,7 @@ main{
   touch-action:manipulation;
 }
 
-/* =========================
-   Footer（固定風だが fixed は使わない）
-========================= */
+/* Footer（固定風だが fixed は使わない） */
 footer{
   flex:0 0 auto;
   padding:20px 0;
