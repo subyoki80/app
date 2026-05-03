@@ -16,26 +16,39 @@ body{
   overflow:hidden;
 }
 
-/* 上部スペーサー（All Delete の位置安定用） */
+/* 上部スペーサー（位置安定用） */
 .top-spacer{
   height:40px;
   pointer-events:none;
   opacity:0;
 }
 
-/* header は sticky で安定 */
+/* header（累計＋ALL Delete 横並び） */
 header{
   position:sticky;
   top:0;
   z-index:10;
   padding:10px;
   background:#0f1724;
-  text-align:center;
   box-sizing:border-box;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
 }
 
+/* 累計表示（左側50%） */
+#totalArea{
+  width:50%;
+  font-size:20px;
+  font-weight:700;
+  color:#e6eef8;
+  text-align:left;
+}
+
+/* ALL Delete（右側50%） */
 #allDeleteBtn{
-  width:90%;
+  width:50%;
   padding:10px;
   border-radius:8px;
   background:rgba(255,80,80,0.15);
@@ -46,13 +59,13 @@ header{
   touch-action:manipulation;
 }
 
-/* ★ ログエリアをさらに縮める（footer を上に押し上げる） */
+/* ログエリア（縮小済み） */
 main{
   flex:1 1 auto;
   overflow-y:auto;
   padding:10px 20px;
   box-sizing:border-box;
-  max-height:calc(100vh - 500px); /* ← ここを調整（600 → 500） */
+  max-height:calc(100vh - 500px);
 }
 
 .log-spacer{
@@ -88,7 +101,7 @@ main{
   touch-action:manipulation;
 }
 
-/* footer（位置は main の高さで決まる） */
+/* footer */
 footer{
   flex:0 0 auto;
   padding:20px 0;
@@ -98,7 +111,7 @@ footer{
   box-sizing:border-box;
 }
 
-/* ★ カウント文字を 2 倍にする（70px → 140px） */
+/* カウント文字（2倍） */
 .count{
   font-size:140px;
   font-weight:700;
@@ -145,6 +158,7 @@ button{
 <div class="top-spacer"></div>
 
 <header>
+  <div id="totalArea">Total: <span id="totalValue">0</span></div>
   <button id="allDeleteBtn">ALL Delete</button>
 </header>
 
@@ -169,6 +183,7 @@ button{
   const resetBtn = document.getElementById("resetBtn");
   const logArea = document.getElementById("logArea");
   const allDeleteBtn = document.getElementById("allDeleteBtn");
+  const totalValueEl = document.getElementById("totalValue");
 
   let count = Number(localStorage.getItem("counter_value") || 0);
   let logs = JSON.parse(localStorage.getItem("counter_logs") || "[]");
@@ -178,6 +193,13 @@ button{
   function save(){
     localStorage.setItem("counter_value", count);
     localStorage.setItem("counter_logs", JSON.stringify(logs));
+  }
+
+  /* ★ 累計更新 */
+  function updateTotal(){
+    let total = 0;
+    logs.forEach(v => total += Number(v));
+    totalValueEl.textContent = total;
   }
 
   function renderLogs(){
@@ -197,6 +219,7 @@ button{
         logs.splice(Number(btn.dataset.index), 1);
         save();
         renderLogs();
+        updateTotal();
       };
     });
 
@@ -204,6 +227,7 @@ button{
   }
 
   renderLogs();
+  updateTotal();
 
   function update(){
     countEl.textContent = count;
@@ -218,12 +242,14 @@ button{
     count = 0;
     update();
     renderLogs();
+    updateTotal();
   };
 
   allDeleteBtn.onclick = () => {
     logs = [];
     save();
     renderLogs();
+    updateTotal();
   };
 })();
 </script>
