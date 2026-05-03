@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
 <title>Checklist</title>
 
 <style>
@@ -13,7 +13,7 @@ body{
   font-family:-apple-system;
   overflow:hidden;
   -webkit-user-select:none;
-  user-select:none; /* ← 長押しの範囲選択を完全無効化 */
+  user-select:none;
 }
 
 /* ズーム可能エリア */
@@ -21,7 +21,7 @@ body{
   width:100%;
   height:100vh;
   overflow:scroll;
-  touch-action:pinch-zoom; /* ← ズーム有効 */
+  touch-action:pinch-zoom; /* ← これがズームを有効化する本命 */
   background:#000;
 }
 
@@ -34,7 +34,7 @@ body{
   background-size:100% 100%;
 }
 
-/* チェック（✔・赤・太線・32px） */
+/* チェック（✔・赤・32px） */
 .check{
   position:absolute;
   width:32px;
@@ -74,8 +74,12 @@ body{
 const layer = document.getElementById("imageLayer");
 let longPressTimer = null;
 
-/* クリックでチェック追加 */
-layer.addEventListener("click", e=>{
+/* タップでチェック追加 */
+layer.addEventListener("pointerup", e=>{
+  // ズーム操作中は pointerup が複数指で来るので無視
+  if(e.pointerType === "touch" && e.isPrimary === false) return;
+
+  // チェック自身をタップした場合は追加しない
   if(e.target.classList.contains("check")) return;
 
   const rect = layer.getBoundingClientRect();
@@ -93,19 +97,16 @@ layer.addEventListener("click", e=>{
   attachLongPress(div);
 });
 
-/* 長押しで即削除（確認なし） */
+/* 長押しで即削除 */
 function attachLongPress(el){
-  el.addEventListener("touchstart", startPress);
-  el.addEventListener("mousedown", startPress);
-
-  el.addEventListener("touchend", cancelPress);
-  el.addEventListener("mouseup", cancelPress);
-  el.addEventListener("mouseleave", cancelPress);
+  el.addEventListener("pointerdown", startPress);
+  el.addEventListener("pointerup", cancelPress);
+  el.addEventListener("pointerleave", cancelPress);
 
   function startPress(e){
     e.stopPropagation();
     longPressTimer = setTimeout(()=>{
-      el.remove();   // ← 即削除
+      el.remove();  // ← 即削除
     }, 500);
   }
 
