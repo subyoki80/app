@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Simple Counter</title>
 <style>
 body{
@@ -46,6 +46,7 @@ button{
   font-size:24px;
   font-weight:700;
   cursor:pointer;
+  touch-action: manipulation; /* ← iPhoneのダブルタップ拡大を防ぐ */
 }
 
 /* +1 */
