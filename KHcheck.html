@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1">
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Checklist</title>
 
 <style>
@@ -17,7 +17,7 @@ body{
   user-select:none;
 }
 
-/* スクロール領域 */
+/* ブラウザのスクロール領域はそのまま使う */
 #zoomArea{
   position:absolute;
   inset:0;
@@ -59,7 +59,7 @@ body{
   user-select:none;
 }
 
-/* ★ transform の外に固定して常に表示 */
+/* transform の外に固定して常に表示 */
 #resetBtn{
   position:fixed;
   top:10px;
@@ -97,12 +97,12 @@ let isPinching = false;
 let longPress = false;
 let touchMoved = false;
 let pinchEndTimer = null;
-let lastTap = 0;
+let lastTapTime = 0;
 
 /* 2本指距離 */
-function getDistance(t){
-  const dx = t[0].clientX - t[1].clientX;
-  const dy = t[0].clientY - t[1].clientY;
+function getDistance(touches){
+  const dx = touches[0].clientX - touches[1].clientX;
+  const dy = touches[0].clientY - touches[1].clientY;
   return Math.hypot(dx, dy);
 }
 
@@ -111,61 +111,79 @@ zoomContainer.addEventListener("touchstart", e=>{
   if(e.touches.length === 2){
     isPinching = true;
     clearTimeout(pinchEndTimer);
-
     startDist = getDistance(e.touches);
 
     const rect = zoomContainer.getBoundingClientRect();
     const cx = (e.touches[0].clientX + e.touches[1].clientX)/2 - rect.left;
     const cy = (e.touches[0].clientY + e.touches[1].clientY)/2 - rect.top;
-
     zoomContainer.style.transformOrigin = `${cx}px ${cy}px`;
   }
-});
+}, {passive:true});
 
 /* ピンチ中 or スクロール中 */
 zoomContainer.addEventListener("touchmove", e=>{
   if(e.touches.length === 2){
-    e.preventDefault();
-
+    e.preventDefault(); // ブラウザ側のピンチズーム抑制
     const newDist = getDistance(e.touches);
     const scale   = newDist / startDist;
 
     zoom *= scale;
     zoom = Math.max(0.3, Math.min(3.0, zoom));
-
     zoomContainer.style.transform = `scale(${zoom})`;
 
     startDist = newDist;
   }else{
-    touchMoved = true;
+    touchMoved = true; // スクロールなど
   }
-},{passive:false});
+}, {passive:false});
 
-/* ピンチ終了 */
+/* 長押しで削除用の付与 */
+function attachLongPress(el){
+  let timer;
+  el.addEventListener("touchstart", ()=>{
+    longPress = false;
+    timer = setTimeout(()=>{
+      longPress = true;
+      el.remove();
+    }, 500);
+  }, {passive:true});
+  el.addEventListener("touchend", ()=>{
+    clearTimeout(timer);
+    setTimeout(()=>{ longPress = false; }, 50);
+  }, {passive:true});
+}
+
+/* touchend 一括処理：
+   - ピンチ終了フラグ
+   - ダブルタップ抑制
+   - タップで✔追加
+*/
 zoomContainer.addEventListener("touchend", e=>{
-  if(e.touches.length === 0){
+  // ピンチ終了
+  if(e.touches.length === 0 && isPinching){
     pinchEndTimer = setTimeout(()=>{ isPinching = false; }, 200);
   }
-});
 
-/* ★ ダブルタップズーム完全無効化 */
-zoomContainer.addEventListener("touchend", e=>{
+  // ダブルタップ抑制（ブラウザズーム対策）
   const now = Date.now();
-  if(now - lastTap < 300){
+  if(now - lastTapTime < 300){
     e.preventDefault();
-    lastTap = 0;
+    lastTapTime = 0;
     return;
   }
-  lastTap = now;
-},{passive:false});
+  lastTapTime = now;
 
-/* タップで✔追加 */
-zoomContainer.addEventListener("touchend", e=>{
+  // ✔ 追加条件チェック
   if(isPinching) return;
   if(longPress)  return;
-  if(touchMoved){ touchMoved = false; return; }
+  if(touchMoved){
+    touchMoved = false;
+    return;
+  }
   if(e.target.classList.contains("check")) return;
 
+  // 1本指タップ位置 → 図面座標に変換
+  if(!e.changedTouches || e.changedTouches.length === 0) return;
   const rect = zoomContainer.getBoundingClientRect();
   const x = (e.changedTouches[0].clientX - rect.left) / zoom;
   const y = (e.changedTouches[0].clientY - rect.top) / zoom;
@@ -175,34 +193,18 @@ zoomContainer.addEventListener("touchend", e=>{
   div.textContent = "✔";
   div.style.left = (x - 16) + "px";
   div.style.top  = (y - 16) + "px";
-
   checkLayer.appendChild(div);
 
   attachLongPress(div);
-});
+}, {passive:false});
 
-/* 長押しで削除 */
-function attachLongPress(el){
-  let timer;
-
-  el.addEventListener("touchstart", ()=>{
-    longPress = false;
-    timer = setTimeout(()=>{
-      longPress = true;
-      el.remove();
-    }, 500);
-  });
-
-  el.addEventListener("touchend", ()=>{
-    clearTimeout(timer);
-    setTimeout(()=>{ longPress = false; }, 50);
-  });
-}
-
-/* リセット */
+/* リセットボタン：✔ 全削除 */
 document.getElementById("resetBtn").onclick = ()=>{
   document.querySelectorAll(".check").forEach(c=> c.remove());
 };
+
+/* 追加の保険：ドキュメント全体で gesturestart を潰す（古い iOS 向け） */
+document.addEventListener('gesturestart', e=>{ e.preventDefault(); }, {passive:false});
 </script>
 
 </body>
