@@ -16,14 +16,14 @@ body{
   overflow:hidden;
 }
 
-/* ★ All Delete の上に置く透明スペーサー（あなたの提案を正しく実装） */
+/* ★ All Delete の上に置く透明スペーサー（2段分に増量） */
 .top-spacer{
-  height:50px;        /* ← 実機に合わせて 40〜70px で微調整可能 */
+  height:90px;        /* ← ここを増やした（50→90） */
   pointer-events:none;
   opacity:0;
 }
 
-/* Header（固定風だが fixed は使わない） */
+/* Header（固定風） */
 header{
   flex:0 0 auto;
   padding:10px;
@@ -139,7 +139,7 @@ button{
 </head>
 <body>
 
-<!-- ★ All Delete の上に透明スペーサー -->
+<!-- ★ All Delete の上に透明スペーサー（2段分） -->
 <div class="top-spacer"></div>
 
 <header>
@@ -179,7 +179,7 @@ button{
   }
 
   function renderLogs(){
-    logArea.innerHTML = '<div class="log-spacer"></div>'; /* ← スペーサー維持 */
+    logArea.innerHTML = '<div class="log-spacer"></div>';
     logs.forEach((value, index) => {
       const div = document.createElement("div");
       div.className = "log-item";
