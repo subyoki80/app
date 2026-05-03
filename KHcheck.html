@@ -16,15 +16,14 @@ body{
   user-select:none;
 }
 
-/* ★ スクロール可能にする（高さを固定しない） */
+/* スクロール領域（touch-action は指定しない） */
 #zoomArea{
   position:absolute;
   top:0;
   left:0;
   right:0;
   bottom:0;
-  overflow:auto;            /* ← auto に変更 */
-  touch-action:pinch-zoom;  /* ← ズーム有効 */
+  overflow:auto;
   background:#000;
 }
 
@@ -76,15 +75,23 @@ body{
 <script>
 const layer = document.getElementById("imageLayer");
 let longPress = false;
+let isScrolling = false;
+let touchMoved = false;
 
-/* タップでチェック追加（click 使用） */
-layer.addEventListener("click", e=>{
-  if(longPress) return;  // ← 長押し後の click を無効化
+/* スクロール開始判定 */
+layer.addEventListener("touchmove", ()=>{
+  touchMoved = true;   // ← 指が動いたらタップ扱いにしない
+});
+
+/* タップでチェック追加（touchend 使用） */
+layer.addEventListener("touchend", e=>{
+  if(longPress) return;
+  if(touchMoved) { touchMoved = false; return; }  // ← スクロール中は無効
   if(e.target.classList.contains("check")) return;
 
   const rect = layer.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const x = e.changedTouches[0].clientX - rect.left;
+  const y = e.changedTouches[0].clientY - rect.top;
 
   const div = document.createElement("div");
   div.className = "check";
@@ -112,7 +119,7 @@ function attachLongPress(el){
     longPress = false;
     timer = setTimeout(()=>{
       longPress = true;
-      el.remove();  // ← 即削除
+      el.remove();
     }, 500);
   }
 
