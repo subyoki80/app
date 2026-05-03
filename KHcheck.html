@@ -21,7 +21,7 @@ body{
   width:100%;
   height:100vh;
   overflow:scroll;
-  touch-action:pinch-zoom; /* ← これがズームを有効化する本命 */
+  touch-action:pinch-zoom; /* ← ズーム有効 */
   background:#000;
 }
 
@@ -72,14 +72,11 @@ body{
 
 <script>
 const layer = document.getElementById("imageLayer");
-let longPressTimer = null;
+let longPress = false;
 
-/* タップでチェック追加 */
-layer.addEventListener("pointerup", e=>{
-  // ズーム操作中は pointerup が複数指で来るので無視
-  if(e.pointerType === "touch" && e.isPrimary === false) return;
-
-  // チェック自身をタップした場合は追加しない
+/* タップでチェック追加（click 使用） */
+layer.addEventListener("click", e=>{
+  if(longPress) return;  // ← 長押し後の click を無効化
   if(e.target.classList.contains("check")) return;
 
   const rect = layer.getBoundingClientRect();
@@ -99,19 +96,26 @@ layer.addEventListener("pointerup", e=>{
 
 /* 長押しで即削除 */
 function attachLongPress(el){
-  el.addEventListener("pointerdown", startPress);
-  el.addEventListener("pointerup", cancelPress);
-  el.addEventListener("pointerleave", cancelPress);
+  let timer;
 
-  function startPress(e){
-    e.stopPropagation();
-    longPressTimer = setTimeout(()=>{
+  el.addEventListener("touchstart", start);
+  el.addEventListener("mousedown", start);
+
+  el.addEventListener("touchend", end);
+  el.addEventListener("mouseup", end);
+  el.addEventListener("mouseleave", end);
+
+  function start(e){
+    longPress = false;
+    timer = setTimeout(()=>{
+      longPress = true;
       el.remove();  // ← 即削除
     }, 500);
   }
 
-  function cancelPress(){
-    clearTimeout(longPressTimer);
+  function end(){
+    clearTimeout(timer);
+    setTimeout(()=> longPress = false, 50);
   }
 }
 
