@@ -47,7 +47,7 @@ button{
   font-size:24px;
   font-weight:700;
   cursor:pointer;
-  touch-action: manipulation; /* ← iPhoneのダブルタップ拡大を防ぐ */
+  touch-action: manipulation;
 }
 
 /* +1 */
@@ -85,7 +85,9 @@ button{
   align-items:center;
   padding:6px 0;
   border-bottom:1px solid rgba(255,255,255,0.1);
-  font-size:14px;
+  font-size:18px;
+  font-weight:600;
+  font-variant-numeric: tabular-nums;
   color:#d0d7e2;
 }
 
@@ -96,6 +98,19 @@ button{
   padding:4px 8px;
   border-radius:6px;
   font-size:12px;
+  cursor:pointer;
+}
+
+/* ★ ALL Delete ボタン（最下部） */
+#allDeleteBtn{
+  margin-top:16px;
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  background:rgba(255,80,80,0.15);
+  border:1px solid rgba(255,80,80,0.4);
+  color:#ff8080;
+  font-size:16px;
   cursor:pointer;
 }
 </style>
@@ -113,6 +128,8 @@ button{
 
   <div id="logArea" class="log-area"></div>
 
+  <button id="allDeleteBtn">ALL Delete</button>
+
 </div>
 
 <script>
@@ -122,6 +139,7 @@ button{
   const minusBtn = document.getElementById("minusBtn");
   const resetBtn = document.getElementById("resetBtn");
   const logArea = document.getElementById("logArea");
+  const allDeleteBtn = document.getElementById("allDeleteBtn");
 
   /* ★ ローカル保存 */
   let count = Number(localStorage.getItem("simpleCounter") || 0);
@@ -136,17 +154,17 @@ button{
 
   function renderLogs(){
     logArea.innerHTML = "";
-    logs.forEach((log, index) => {
+    logs.forEach((value, index) => {
       const div = document.createElement("div");
       div.className = "log-item";
       div.innerHTML = `
-        <span>${log}</span>
+        <span>${value}</span>
         <button class="log-delete" data-index="${index}">Delete</button>
       `;
       logArea.appendChild(div);
     });
 
-    /* Delete ボタンの動作 */
+    /* Delete ボタン */
     document.querySelectorAll(".log-delete").forEach(btn => {
       btn.onclick = () => {
         const i = Number(btn.dataset.index);
@@ -175,13 +193,15 @@ button{
   };
 
   resetBtn.onclick = () => {
-    const now = new Date();
-    const t = now.toLocaleTimeString("ja-JP", { hour12:false });
-
-    logs.push(`Reset at ${t} → Count: ${count}`);
+    logs.push(count);  // ★ 時間なし、数値のみ
     count = 0;
-
     update();
+    renderLogs();
+  };
+
+  allDeleteBtn.onclick = () => {
+    logs = [];
+    save();
     renderLogs();
   };
 })();
