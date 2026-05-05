@@ -82,14 +82,9 @@ button{
   padding:8px 12px;
   border-radius:8px;
 }
-input[type="number"]{
-  width:70px;
+input[type="time"]{
   font-size:28px;
-  padding:6px;
-  border-radius:8px;
-  border:1px solid #555;
-  text-align:center;
-  font-variant-numeric: tabular-nums;
+  font-weight:700;
 }
 </style>
 </head>
@@ -106,14 +101,7 @@ input[type="number"]{
 
   <div class="controls">
     <button id="startBtn">開始</button>
-
-    <!-- ★ 数字専用の時刻入力 -->
-    <div>
-      <input id="endH" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="23"> :
-      <input id="endM" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="59"> :
-      <input id="endS" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="59">
-    </div>
-
+    <input id="timeInput" type="time">
     <button id="resetBtn">リセット</button>
   </div>
 
@@ -135,11 +123,7 @@ input[type="number"]{
   const nowTime = document.getElementById("nowTime");
   const timeLeft = document.getElementById("timeLeft");
   const status = document.getElementById("status");
-
-  const endH = document.getElementById("endH");
-  const endM = document.getElementById("endM");
-  const endS = document.getElementById("endS");
-
+  const timeInput = document.getElementById("timeInput");
   const startBtn = document.getElementById("startBtn");
   const resetBtn = document.getElementById("resetBtn");
   const presets = document.querySelectorAll(".presetBtn");
@@ -182,13 +166,6 @@ input[type="number"]{
   setInterval(updateNow,1000);
   updateNow();
 
-  /* 入力補正 */
-  function sanitize(){
-    endH.value = Math.min(23, Math.max(0, Number(endH.value)||0));
-    endM.value = Math.min(59, Math.max(0, Number(endM.value)||0));
-    endS.value = Math.min(59, Math.max(0, Number(endS.value)||0));
-  }
-
   /* 残り時間（誤差ゼロ） */
   function updateTimer(){
     if(!target){
@@ -210,14 +187,16 @@ input[type="number"]{
 
   /* 開始 */
   async function start(){
-    sanitize();
+    const val = timeInput.value;
+    if(!val){
+      alert("時刻を入力してください");
+      return;
+    }
 
-    const h = Number(endH.value);
-    const m = Number(endM.value);
-    const s = Number(endS.value);
+    const [h,m] = val.split(":").map(Number);
 
     const now = new Date();
-    target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,s);
+    target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0);
 
     if(target <= now){
       target.setDate(target.getDate()+1);
@@ -238,20 +217,13 @@ input[type="number"]{
 
   /* プリセット */
   presets.forEach(btn=>{
-    btn.onclick = ()=>{
-      const [h,m] = btn.dataset.time.split(":").map(Number);
-      endH.value = h;
-      endM.value = m;
-      endS.value = 0;
-    };
+    btn.onclick = ()=> timeInput.value = btn.dataset.time;
   });
 
   /* 初期値：現在時刻＋1分 */
   (() => {
     const d = new Date(Date.now() + 60000);
-    endH.value = d.getHours();
-    endM.value = d.getMinutes();
-    endS.value = 0;
+    timeInput.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   })();
 
   startBtn.onclick = start;
