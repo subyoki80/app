@@ -202,8 +202,10 @@ input[type="time"]{
     updateTimer();
     startBtn.disabled = true;
 
-    /* ★ 画面ロック防止 ON */
-    noSleep.enable();
+    /* ★ 画面ロック防止 ON（iOS の制限回避のため非同期） */
+    setTimeout(() => {
+      noSleep.enable();
+    }, 0);
   }
 
   /* ★ リセット（画面ロック防止 OFF） */
@@ -213,7 +215,6 @@ input[type="time"]{
     updateTimer();
     status.textContent = "終了時刻を指定してください";
 
-    /* ★ OFF */
     noSleep.disable();
   }
 
