@@ -159,8 +159,8 @@ input[type="number"]{
 
   /* Wake Lock 再取得（iOS Safari 対策） */
   document.addEventListener("visibilitychange", () => {
-    if (wakeLock && document.visibilityState === "visible") {
-      enableWakeLock();
+    if (document.visibilityState === "visible") {
+      enableWakeLock();  // wakeLock の有無に関係なく再取得
     }
   });
 
