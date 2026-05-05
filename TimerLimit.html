@@ -14,23 +14,17 @@ body{
   background:#0f1724;
   color:#e6eef8;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-
-  /* ★ flex をやめる（iOS の透明オーバーレイ対策） */
-  min-height:100vh;
-  display:block;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
-/* ★ container を中央寄せ（flex はここに移動） */
 .container{
   width:100%;
   max-width:720px;
   padding:20px;
-  margin:0 auto;
   text-align:center;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
 }
 
 .now-date{
@@ -153,6 +147,7 @@ input[type="time"]{
 
   /* ★ 画面ロック防止インスタンス */
   const noSleep = new NoSleep();
+  let noSleepEnabled = false;
 
   const pad = n => String(n).padStart(2,"0");
   const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -186,7 +181,6 @@ input[type="time"]{
     timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
   }
 
-  /* ★ タイマー開始（画面ロック防止 ON） */
   function start(){
     const val = timeInput.value;
     if(!val){
@@ -207,21 +201,13 @@ input[type="time"]{
 
     updateTimer();
     startBtn.disabled = true;
-
-    /* ★ iOS の制限回避のため非同期で enable */
-    setTimeout(() => {
-      noSleep.enable();
-    }, 0);
   }
 
-  /* ★ リセット（画面ロック防止 OFF） */
   function reset(){
     target = null;
     startBtn.disabled = false;
     updateTimer();
     status.textContent = "終了時刻を指定してください";
-
-    noSleep.disable();
   }
 
   presets.forEach(btn=>{
@@ -239,6 +225,15 @@ input[type="time"]{
 
   startBtn.onclick = start;
   resetBtn.onclick = reset;
+
+  /* ★ ページ上で最初にタップされたときだけ NoSleep を有効化 */
+  document.addEventListener("click", function enableNoSleepOnce(){
+    if(!noSleepEnabled){
+      noSleep.enable();
+      noSleepEnabled = true;
+    }
+    document.removeEventListener("click", enableNoSleepOnce);
+  }, {passive:true});
 
 })();
 </script>
