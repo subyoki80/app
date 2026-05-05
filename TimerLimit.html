@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TimerLimit</title>
+
+<!-- ★ NoSleep.js（画面ロック防止） -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noSleep/0.12.0/NoSleep.min.js"></script>
+
 <style>
 body{
   margin:0;
@@ -23,7 +27,6 @@ body{
   text-align:center;
 }
 
-/* ★ 日付（現在時刻と同じ色） */
 .now-date{
   font-size:18px;
   color:#8fbaff;
@@ -31,7 +34,6 @@ body{
   font-variant-numeric: tabular-nums;
 }
 
-/* ★ 現在時刻（揺れない） */
 .now-time{
   font-size:48px;
   font-weight:700;
@@ -39,7 +41,6 @@ body{
   font-variant-numeric: tabular-nums;
 }
 
-/* ★ 残り時間だけグレー囲み */
 .timer-box{
   background:rgba(255,255,255,0.05);
   padding:20px;
@@ -96,7 +97,6 @@ button{
   border-radius:8px;
 }
 
-/* ★ 標準 UI のままでもフォントサイズと太字は効く */
 input[type="time"]{
   font-size:28px;
   font-weight:700;
@@ -145,6 +145,9 @@ input[type="time"]{
 
   let target = null;
 
+  /* ★ 画面ロック防止インスタンス */
+  const noSleep = new NoSleep();
+
   const pad = n => String(n).padStart(2,"0");
   const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
@@ -164,7 +167,7 @@ input[type="time"]{
     }
 
     const now = new Date();
-    now.setMilliseconds(0); // ★ ミリ秒切り捨てでズレゼロ
+    now.setMilliseconds(0);
 
     const diff = Math.floor((target - now) / 1000);
 
@@ -177,6 +180,7 @@ input[type="time"]{
     timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
   }
 
+  /* ★ タイマー開始（画面ロック防止 ON） */
   function start(){
     const val = timeInput.value;
     if(!val){
@@ -197,20 +201,27 @@ input[type="time"]{
 
     updateTimer();
     startBtn.disabled = true;
+
+    /* ★ 画面ロック防止 ON */
+    noSleep.enable();
   }
 
+  /* ★ リセット（画面ロック防止 OFF） */
   function reset(){
     target = null;
     startBtn.disabled = false;
     updateTimer();
     status.textContent = "終了時刻を指定してください";
+
+    /* ★ OFF */
+    noSleep.disable();
   }
 
   presets.forEach(btn=>{
     btn.onclick = ()=> timeInput.value = btn.dataset.time;
   });
 
-  // ★ 初期値：1分後（秒00固定）
+  /* 初期値：1分後 */
   (() => {
     const d = new Date(Date.now() + 60000);
     timeInput.value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
