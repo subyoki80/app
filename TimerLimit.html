@@ -142,9 +142,23 @@ input[type="time"]{
 
   let target = null;
 
-  /* ★ 画面ロック防止インスタンス */
-  const noSleep = new NoSleep();
-  let noSleepEnabled = false;
+  /* ★ Wake Lock API */
+  let wakeLock = null;
+
+  async function enableWakeLock(){
+    try{
+      wakeLock = await navigator.wakeLock.request("screen");
+    }catch(e){
+      console.log("WakeLock error:", e);
+    }
+  }
+
+  function disableWakeLock(){
+    if(wakeLock){
+      wakeLock.release();
+      wakeLock = null;
+    }
+  }
 
   const pad = n => String(n).padStart(2,"0");
   const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -178,7 +192,7 @@ input[type="time"]{
     timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
   }
 
-  function start(){
+  async function start(){
     const val = timeInput.value;
     if(!val){
       alert("時刻を入力してください");
@@ -198,6 +212,9 @@ input[type="time"]{
 
     updateTimer();
     startBtn.disabled = true;
+
+    /* ★ 画面ロック防止 ON */
+    await enableWakeLock();
   }
 
   function reset(){
@@ -205,6 +222,9 @@ input[type="time"]{
     startBtn.disabled = false;
     updateTimer();
     status.textContent = "終了時刻を指定してください";
+
+    /* ★ 画面ロック防止 OFF */
+    disableWakeLock();
   }
 
   presets.forEach(btn=>{
