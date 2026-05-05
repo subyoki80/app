@@ -11,37 +11,58 @@ body{
   background:#0f1724;
   color:#e6eef8;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  text-align:center;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  width:100%;
+  max-width:720px;
   padding:20px;
+  text-align:center;
+}
+
+.now-date{
+  font-size:18px;
+  color:#8fbaff;
+  margin-bottom:4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .now-time{
-  font-size:40px;
+  font-size:48px;
   font-weight:700;
   color:#8fbaff;
-  margin-bottom:20px;
   font-variant-numeric: tabular-nums;
 }
 
-.timer-display{
-  font-size:60px;
+.timer-box{
+  background:rgba(255,255,255,0.05);
+  padding:20px;
+  border-radius:12px;
+  margin-top:30px;
+}
+
+.time-left{
+  font-size:48px;
   font-weight:700;
-  margin:20px 0;
   font-variant-numeric: tabular-nums;
+  margin-bottom:6px;
 }
 
 .controls{
-  margin-top:20px;
+  margin-top:24px;
   display:flex;
   justify-content:center;
-  gap:10px;
+  gap:14px;
 }
 
 button{
-  padding:12px 20px;
+  padding:10px 14px;
   border-radius:10px;
   border:0;
-  font-size:20px;
   font-weight:600;
   cursor:pointer;
 }
@@ -57,55 +78,77 @@ button{
 }
 
 input[type="number"]{
-  width:100px;
-  font-size:28px;
+  width:70px;
+  font-size:26px;
   padding:6px;
   border-radius:8px;
   border:1px solid #555;
   text-align:center;
+  font-variant-numeric: tabular-nums;
 }
 </style>
 </head>
 <body>
+<div class="container">
 
-<div id="nowTime" class="now-time"></div>
+  <div id="nowDate" class="now-date"></div>
+  <div id="nowTime" class="now-time"></div>
 
-<div>
-  <input id="minInput" type="number" min="0" value="5"> 分
-  <input id="secInput" type="number" min="0" max="59" value="0"> 秒
-</div>
+  <!-- 指定時刻入力 -->
+  <div style="margin-top:20px;">
+    <input id="endH" type="number" min="0" max="23"> :
+    <input id="endM" type="number" min="0" max="59"> :
+    <input id="endS" type="number" min="0" max="59">
+  </div>
 
-<div id="timerDisplay" class="timer-display">05:00</div>
+  <div class="timer-box">
+    <div id="timeLeft" class="time-left">--:--:--</div>
+    <div id="status">終了時刻を指定してください</div>
+  </div>
 
-<div class="controls">
-  <button id="startBtn">開始</button>
-  <button id="stopBtn">停止</button>
+  <!-- 繰り返しタイマー -->
+  <div style="margin-top:20px;">
+    <input id="repMin" type="number" min="0" value="5"> 分
+    <input id="repSec" type="number" min="0" max="59" value="0"> 秒
+  </div>
+
+  <div class="controls">
+    <button id="startBtn">開始</button>
+    <button id="stopBtn">停止</button>
+  </div>
+
 </div>
 
 <script>
 (() => {
+  const nowDate = document.getElementById("nowDate");
   const nowTime = document.getElementById("nowTime");
-  const timerDisplay = document.getElementById("timerDisplay");
-  const minInput = document.getElementById("minInput");
-  const secInput = document.getElementById("secInput");
+  const timeLeft = document.getElementById("timeLeft");
+  const status = document.getElementById("status");
+
+  const endH = document.getElementById("endH");
+  const endM = document.getElementById("endM");
+  const endS = document.getElementById("endS");
+
+  const repMin = document.getElementById("repMin");
+  const repSec = document.getElementById("repSec");
+
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
 
-  let remaining = 0;
+  let target = null;
   let loopTimer = null;
   let wakeLock = null;
-  let lastSetMin = 5;
-  let lastSetSec = 0;
 
-  /* ★ Wake Lock API */
+  const pad = n => String(n).padStart(2,"0");
+  const week = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+  /* Wake Lock */
   async function enableWakeLock(){
     try{
       wakeLock = await navigator.wakeLock.request("screen");
-    }catch(e){
-      console.log("WakeLock error:", e);
-    }
+    }catch(e){}
   }
-
   function disableWakeLock(){
     if(wakeLock){
       wakeLock.release();
@@ -114,80 +157,130 @@ input[type="number"]{
   }
 
   /* 現在時刻表示 */
-  function updateClock(){
+  function updateNow(){
     const d = new Date();
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
-    nowTime.textContent = `${hh}:${mm}:${ss}`;
+    nowDate.textContent =
+      `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}/${week[d.getDay()]}`;
+    nowTime.textContent =
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    updateTimer();
   }
-  setInterval(updateClock, 1000);
-  updateClock();
+  setInterval(updateNow,1000);
+  updateNow();
 
-  /* 表示更新 */
-  function updateDisplay(){
-    const m = String(Math.floor(remaining / 60)).padStart(2,"0");
-    const s = String(remaining % 60).padStart(2,"0");
-    timerDisplay.textContent = `${m}:${s}`;
-  }
-
-  /* バイブレーション（5秒間） */
-  function vibrate5sec(){
-    if(navigator.vibrate){
-      navigator.vibrate([500,500,500,500,500]);
+  /* 残り時間表示 */
+  function updateTimer(){
+    if(!target){
+      timeLeft.textContent = "--:--:--";
+      return;
     }
+    const now = new Date();
+    now.setMilliseconds(0);
+
+    const diff = Math.floor((target - now) / 1000);
+
+    const h = Math.floor(Math.abs(diff)/3600);
+    const m = Math.floor(Math.abs(diff)%3600/60);
+    const s = Math.abs(diff)%60;
+
+    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+    status.textContent = diff >= 0 ? "残り時間" : "経過時間";
+    timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
   }
 
-  /* カウントダウン開始（ループ） */
-  async function startLoop(){
-    lastSetMin = Number(minInput.value);
-    lastSetSec = Number(secInput.value);
+  /* 画面フラッシュ */
+  function flashScreen(){
+    let count = 0;
+    const flash = setInterval(()=>{
+      document.body.style.background =
+        (count % 2 === 0) ? "#ffffff" : "#0f1724";
+      count++;
+      if(count > 6){
+        clearInterval(flash);
+        document.body.style.background = "#0f1724";
+      }
+    }, 200);
+  }
 
-    remaining = lastSetMin * 60 + lastSetSec;
-    if(remaining <= 0){
-      alert("時間を設定してください");
+  /* 繰り返しタイマー開始 */
+  function startRepeat(){
+    let remain = Number(repMin.value) * 60 + Number(repSec.value);
+
+    loopTimer = setInterval(()=>{
+      remain--;
+      const mm = pad(Math.floor(remain/60));
+      const ss = pad(remain%60);
+      timeLeft.textContent = `00:${mm}:${ss}`;
+      status.textContent = "繰り返しタイマー";
+
+      if(remain <= 0){
+        flashScreen();
+        remain = Number(repMin.value) * 60 + Number(repSec.value);
+      }
+    },1000);
+  }
+
+  /* 開始 */
+  async function start(){
+    const h = Number(endH.value);
+    const m = Number(endM.value);
+    const s = Number(endS.value);
+
+    if(isNaN(h) || isNaN(m) || isNaN(s)){
+      alert("終了時刻を入力してください");
       return;
     }
 
+    const now = new Date();
+    now.setMilliseconds(0);
+
+    target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,s);
+    if(target <= now){
+      target.setDate(target.getDate()+1);
+    }
+
+    startBtn.disabled = true;
+
     await enableWakeLock();
 
-    if(loopTimer) clearInterval(loopTimer);
+    /* 指定時刻まで待つ */
+    const waitTimer = setInterval(()=>{
+      const now2 = new Date();
+      now2.setMilliseconds(0);
 
-    loopTimer = setInterval(() => {
-      remaining--;
-      updateDisplay();
-
-      if(remaining <= 0){
-        vibrate5sec();
-
-        /* 次のループ開始 */
-        remaining = lastSetMin * 60 + lastSetSec;
-        updateDisplay();
+      if(now2 >= target){
+        clearInterval(waitTimer);
+        flashScreen();
+        startRepeat();
       }
-    }, 1000);
+    },1000);
   }
 
   /* 停止 */
-  function stopLoop(){
+  function stop(){
+    startBtn.disabled = false;
+    target = null;
+    disableWakeLock();
+
     if(loopTimer){
       clearInterval(loopTimer);
       loopTimer = null;
     }
-    disableWakeLock();
 
-    /* 入力欄を前回値に戻す */
-    minInput.value = lastSetMin;
-    secInput.value = lastSetSec;
-
-    remaining = lastSetMin * 60 + lastSetSec;
-    updateDisplay();
+    timeLeft.textContent = "--:--:--";
+    status.textContent = "停止中";
   }
 
-  startBtn.onclick = startLoop;
-  stopBtn.onclick = stopLoop;
+  startBtn.onclick = start;
+  stopBtn.onclick = stop;
 
-  /* 初期表示 */
-  updateDisplay();
+  /* 初期値：現在時刻＋1分 */
+  (() => {
+    const d = new Date(Date.now() + 60000);
+    endH.value = d.getHours();
+    endM.value = d.getMinutes();
+    endS.value = 0;
+  })();
 
 })();
 </script>
