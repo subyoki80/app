@@ -15,6 +15,7 @@ body{
   justify-content:center;
   align-items:center;
   height:100vh;
+  transition: background 0.1s;
 }
 
 .container{
@@ -156,6 +157,13 @@ input[type="number"]{
     }
   }
 
+  /* Wake Lock 再取得（iOS Safari 対策） */
+  document.addEventListener("visibilitychange", () => {
+    if (wakeLock && document.visibilityState === "visible") {
+      enableWakeLock();
+    }
+  });
+
   /* 現在時刻表示 */
   function updateNow(){
     const d = new Date();
@@ -167,7 +175,16 @@ input[type="number"]{
   setInterval(updateNow,1000);
   updateNow();
 
-  /* 画面フラッシュ（12回） */
+  /* 入力補正 */
+  function sanitize(){
+    endH.value = Math.min(23, Math.max(0, Number(endH.value)||0));
+    endM.value = Math.min(59, Math.max(0, Number(endM.value)||0));
+    endS.value = Math.min(59, Math.max(0, Number(endS.value)||0));
+    repMin.value = Math.max(0, Number(repMin.value)||0);
+    repSec.value = Math.min(59, Math.max(0, Number(repSec.value)||0));
+  }
+
+  /* フラッシュ（12回） */
   function flashScreen(){
     let count = 0;
     const flash = setInterval(()=>{
@@ -181,21 +198,17 @@ input[type="number"]{
     }, 150);
   }
 
-  /* 次回終了時刻を計算して UI に反映 */
-  function updateNextEndTime(){
-    const now = new Date();
+  /* 次回終了時刻を計算（誤差ゼロ） */
+  function calcNextTarget(){
     const add = Number(repMin.value) * 60 + Number(repSec.value);
+    nextTarget = new Date(nextTarget.getTime() + add * 1000);
 
-    const next = new Date(now.getTime() + add * 1000);
-
-    endH.value = next.getHours();
-    endM.value = next.getMinutes();
-    endS.value = next.getSeconds();
-
-    nextTarget = next;
+    endH.value = nextTarget.getHours();
+    endM.value = nextTarget.getMinutes();
+    endS.value = nextTarget.getSeconds();
   }
 
-  /* メインループ（1本化） */
+  /* メインループ（誤差ゼロ） */
   function startMainLoop(){
     if(mainTimer) clearInterval(mainTimer);
 
@@ -210,23 +223,19 @@ input[type="number"]{
         timeLeft.textContent = `${h}:${m}:${s}`;
         status.textContent = "残り時間";
       }else{
-        /* 終了 → フラッシュ → 次回終了時刻へ */
         flashScreen();
-        updateNextEndTime();
+        calcNextTarget();
       }
     },1000);
   }
 
   /* 開始 */
   async function start(){
+    sanitize();
+
     const h = Number(endH.value);
     const m = Number(endM.value);
     const s = Number(endS.value);
-
-    if(isNaN(h) || isNaN(m) || isNaN(s)){
-      alert("終了時刻を入力してください");
-      return;
-    }
 
     const now = new Date();
     nextTarget = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,s);
@@ -253,6 +262,8 @@ input[type="number"]{
     nextTarget = null;
     timeLeft.textContent = "--:--:--";
     status.textContent = "停止中";
+
+    document.body.style.background = "#0f1724";
   }
 
   startBtn.onclick = start;
