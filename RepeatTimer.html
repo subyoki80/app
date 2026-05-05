@@ -136,8 +136,8 @@ input[type="number"]{
   const startBtn = document.getElementById("startBtn");
   const stopBtn = document.getElementById("stopBtn");
 
-  let target = null;
-  let loopTimer = null;
+  let nextTarget = null;
+  let mainTimer = null;
   let wakeLock = null;
 
   const pad = n => String(n).padStart(2,"0");
@@ -163,59 +163,56 @@ input[type="number"]{
       `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}/${week[d.getDay()]}`;
     nowTime.textContent =
       `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    updateTimer();
   }
   setInterval(updateNow,1000);
   updateNow();
 
-  /* 残り時間表示 */
-  function updateTimer(){
-    if(!target){
-      timeLeft.textContent = "--:--:--";
-      return;
-    }
-    const now = new Date();
-    now.setMilliseconds(0);
-
-    const diff = Math.floor((target - now) / 1000);
-
-    const h = Math.floor(Math.abs(diff)/3600);
-    const m = Math.floor(Math.abs(diff)%3600/60);
-    const s = Math.abs(diff)%60;
-
-    timeLeft.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-    status.textContent = diff >= 0 ? "残り時間" : "経過時間";
-    timeLeft.style.color = diff >= 0 ? "#e6eef8" : "#ff6b6b";
-  }
-
-  /* 画面フラッシュ */
+  /* 画面フラッシュ（12回） */
   function flashScreen(){
     let count = 0;
     const flash = setInterval(()=>{
       document.body.style.background =
         (count % 2 === 0) ? "#ffffff" : "#0f1724";
       count++;
-      if(count > 6){
+      if(count > 12){
         clearInterval(flash);
         document.body.style.background = "#0f1724";
       }
-    }, 200);
+    }, 150);
   }
 
-  /* 繰り返しタイマー開始 */
-  function startRepeat(){
-    let remain = Number(repMin.value) * 60 + Number(repSec.value);
+  /* 次回終了時刻を計算して UI に反映 */
+  function updateNextEndTime(){
+    const now = new Date();
+    const add = Number(repMin.value) * 60 + Number(repSec.value);
 
-    loopTimer = setInterval(()=>{
-      remain--;
-      const mm = pad(Math.floor(remain/60));
-      const ss = pad(remain%60);
-      timeLeft.textContent = `00:${mm}:${ss}`;
-      status.textContent = "繰り返しタイマー";
+    const next = new Date(now.getTime() + add * 1000);
 
-      if(remain <= 0){
+    endH.value = next.getHours();
+    endM.value = next.getMinutes();
+    endS.value = next.getSeconds();
+
+    nextTarget = next;
+  }
+
+  /* メインループ（1本化） */
+  function startMainLoop(){
+    if(mainTimer) clearInterval(mainTimer);
+
+    mainTimer = setInterval(()=>{
+      const now = new Date();
+      const diff = Math.floor((nextTarget - now) / 1000);
+
+      if(diff >= 0){
+        const h = pad(Math.floor(diff/3600));
+        const m = pad(Math.floor(diff%3600/60));
+        const s = pad(diff%60);
+        timeLeft.textContent = `${h}:${m}:${s}`;
+        status.textContent = "残り時間";
+      }else{
+        /* 終了 → フラッシュ → 次回終了時刻へ */
         flashScreen();
-        remain = Number(repMin.value) * 60 + Number(repSec.value);
+        updateNextEndTime();
       }
     },1000);
   }
@@ -232,41 +229,28 @@ input[type="number"]{
     }
 
     const now = new Date();
-    now.setMilliseconds(0);
-
-    target = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,s);
-    if(target <= now){
-      target.setDate(target.getDate()+1);
+    nextTarget = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,s);
+    if(nextTarget <= now){
+      nextTarget.setDate(nextTarget.getDate()+1);
     }
 
     startBtn.disabled = true;
 
     await enableWakeLock();
-
-    /* 指定時刻まで待つ */
-    const waitTimer = setInterval(()=>{
-      const now2 = new Date();
-      now2.setMilliseconds(0);
-
-      if(now2 >= target){
-        clearInterval(waitTimer);
-        flashScreen();
-        startRepeat();
-      }
-    },1000);
+    startMainLoop();
   }
 
   /* 停止 */
   function stop(){
     startBtn.disabled = false;
-    target = null;
     disableWakeLock();
 
-    if(loopTimer){
-      clearInterval(loopTimer);
-      loopTimer = null;
+    if(mainTimer){
+      clearInterval(mainTimer);
+      mainTimer = null;
     }
 
+    nextTarget = null;
     timeLeft.textContent = "--:--:--";
     status.textContent = "停止中";
   }
